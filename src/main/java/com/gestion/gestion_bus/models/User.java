@@ -37,7 +37,7 @@ public class User {
     private String dateNaissance;
     private String photoUrl;
     private String carteScolaireUrl;
-    private String attestationUrl;
+    private String cinUrl;
 
     @NonNull
     private String password;

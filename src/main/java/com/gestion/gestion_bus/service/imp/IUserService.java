@@ -15,6 +15,7 @@ import com.gestion.gestion_bus.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -28,9 +29,13 @@ public class IUserService implements UserService {
     private final AbonnementRepository abonnementRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final FileStorageService fileStorageService;
 
     @Override
-    public UserResponseDto registerUser(UserRequestDto dto) {
+    public UserResponseDto registerUser(UserRequestDto dto,
+                                        MultipartFile photo,
+                                        MultipartFile carteScolaire,
+                                        MultipartFile cin) {
         if(userRepository.existsByEmail(dto.getEmail())){
             throw new RuntimeException("Email déjà utilisé");
         }
@@ -48,9 +53,14 @@ public class IUserService implements UserService {
         user.setCIN(dto.getCIN());
         user.setCNE(dto.getCNE());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setPhotoUrl(dto.getPhotoUrl());
-        user.setCarteScolaireUrl(dto.getCarteScolaireUrl());
-        user.setAttestationUrl(dto.getAttestationUrl());
+
+        String photoUrl = fileStorageService.save(photo);
+        String carteUrl = fileStorageService.save(carteScolaire);
+        String cinUrl = fileStorageService.save(cin);
+
+        user.setPhotoUrl(photoUrl);
+        user.setCarteScolaireUrl(carteUrl);
+        user.setCinUrl(cinUrl);
 
         User savedUser = userRepository.save(user);
 
@@ -69,8 +79,6 @@ public class IUserService implements UserService {
         }
 
         return userMapper.toDto(savedUser);
-
-
     }
 
     @Override
