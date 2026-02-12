@@ -16,6 +16,8 @@ public class UserMapper {
         dto.setAdresse(user.getAdresse());
         dto.setDateNaissance(user.getDateNaissance().toString());
         dto.setRole(user.getRole().getName());
+        dto.setCin(user.getCin());
+        dto.setCne(user.getCne());
 
         dto.setPhotoUrl(user.getPhotoUrl());
         dto.setCarteScolaireUrl(user.getCarteScolaireUrl());

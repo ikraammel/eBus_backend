@@ -39,6 +39,16 @@ public class IUserService implements UserService {
         if(userRepository.existsByEmail(dto.getEmail())){
             throw new RuntimeException("Email déjà utilisé");
         }
+        if(userRepository.existsByCin(dto.getCin())){
+            throw new RuntimeException("CIN déjà existante");
+        }
+        if(userRepository.existsByCne(dto.getCne())){
+            throw new RuntimeException("CNE déjà existante");
+        }
+        if(userRepository.existsByTel(dto.getTel())){
+            throw new RuntimeException("Téléphone déjà utilisé");
+        }
+
         Role role = roleRepository.findByName("USER")
                 .orElseThrow(() -> new RuntimeException("Rôle introuvable"));
 
@@ -50,8 +60,8 @@ public class IUserService implements UserService {
         user.setTel(dto.getTel());
         user.setEmail(dto.getEmail());
         user.setAdresse(dto.getAdresse());
-        user.setCIN(dto.getCIN());
-        user.setCNE(dto.getCNE());
+        user.setCin(dto.getCin());
+        user.setCne(dto.getCne());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         String photoUrl = fileStorageService.save(photo);

@@ -33,10 +33,10 @@ public class UserRequestDto {
     private String adresse;
 
     @NotBlank(message = "Le CIN est obligatoire")
-    private String CIN;
+    private String cin;
 
     @NotBlank(message = "Le CNE est obligatoire")
-    private String CNE;
+    private String cne;
 
     @NotBlank(message = "Le mot de passe est obligatoire")
     @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères")
@@ -53,5 +53,5 @@ public class UserRequestDto {
 
     private MultipartFile photo;
     private MultipartFile carteScolaire;
-    private MultipartFile cin;
+    private MultipartFile cinPhoto;
 }

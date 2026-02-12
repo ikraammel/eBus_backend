@@ -1,5 +1,6 @@
 package com.gestion.gestion_bus.dto.response;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,5 +21,6 @@ public class UserResponseDto {
     private String photoUrl;
     private String carteScolaireUrl;
     private String cinUrl;
-
+    private String cin;
+    private String cne;
 }

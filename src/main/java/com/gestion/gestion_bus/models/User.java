@@ -30,9 +30,9 @@ public class User {
 
     private String adresse;
 
-    private String CIN;
+    private String cin;
 
-    private String CNE;
+    private String cne;
 
     private String dateNaissance;
     private String photoUrl;
