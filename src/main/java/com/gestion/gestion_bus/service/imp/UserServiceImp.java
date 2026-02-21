@@ -2,6 +2,7 @@ package com.gestion.gestion_bus.service.imp;
 
 import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.request.LoginRequestDto;
+import com.gestion.gestion_bus.dto.request.UserUpdateDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
 import com.gestion.gestion_bus.enums.TypeAbonnement;
 import com.gestion.gestion_bus.mappers.UserMapper;
@@ -19,11 +20,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-public class IUserService implements UserService {
+public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AbonnementRepository abonnementRepository;
@@ -118,8 +120,39 @@ public class IUserService implements UserService {
     }
 
     @Override
-    public UserResponseDto updateUser(Long id, UserResponseDto user) {
-        return null;
+    public UserResponseDto updateUser(Long id, UserUpdateDto userUpdateDto) {
+        User user1 = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+        if (userUpdateDto.getNom() != null) {
+            user1.setNom(userUpdateDto.getNom());
+        }
+
+        if (userUpdateDto.getPrenom() != null) {
+            user1.setPrenom(userUpdateDto.getPrenom());
+        }
+
+        if (userUpdateDto.getEmail() != null) {
+            user1.setEmail(userUpdateDto.getEmail());
+        }
+
+        if (userUpdateDto.getAdresse() != null) {
+            user1.setAdresse(userUpdateDto.getAdresse());
+        }
+
+        if (userUpdateDto.getDateNaissance() != null) {
+            user1.setDateNaissance(userUpdateDto.getDateNaissance());
+        }
+
+        if (userUpdateDto.getTel() != null) {
+            Optional<User> existingUser = userRepository.findByTel(userUpdateDto.getTel());
+            if(existingUser.isPresent() && !existingUser.get().getId().equals(user1.getId())){
+                throw new RuntimeException("Ce numéro de téléphone est déjà utilisé");
+            }
+            user1.setTel(userUpdateDto.getTel());
+        }
+
+        User savedUser = userRepository.save(user1);
+        return userMapper.toDto(savedUser);
     }
 
     @Override

@@ -54,4 +54,5 @@ public class UserRequestDto {
     private MultipartFile photo;
     private MultipartFile carteScolaire;
     private MultipartFile cinPhoto;
+
 }

@@ -2,6 +2,7 @@ package com.gestion.gestion_bus.controller;
 
 import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserRequestDto;
+import com.gestion.gestion_bus.dto.request.UserUpdateDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
 import com.gestion.gestion_bus.service.interfaces.UserService;
 import jakarta.validation.Valid;
@@ -26,7 +27,15 @@ public class UserController {
             @Valid @RequestPart(value = "photo")MultipartFile photo,
             @Valid @RequestPart(value = "carteScolaire") MultipartFile carteScolaire,
             @Valid @RequestPart(value = "cin")MultipartFile cin ) throws IOException {
+
         return ResponseEntity.ok(userService.registerUser(dto,photo,carteScolaire,cin));
+    }
+
+    @PatchMapping("/update/{id}")
+    public ResponseEntity<UserResponseDto> update(
+            @PathVariable Long id,
+            @Valid @RequestBody UserUpdateDto dto ){
+        return ResponseEntity.ok(userService.updateUser(id,dto));
     }
 
     @PostMapping("/login")

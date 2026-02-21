@@ -17,4 +17,6 @@ public interface UserRepository extends JpaRepository<User,Long> {
     boolean existsByCne(String carteScolaire);
 
     boolean existsByTel(@NotBlank(message = "Le téléphone est obligatoire") String tel);
+
+    Optional<User> findByTel(String tel);
 }
