@@ -7,20 +7,25 @@ import com.gestion.gestion_bus.dto.response.UserResponseDto;
 import com.gestion.gestion_bus.enums.TypeAbonnement;
 import com.gestion.gestion_bus.mappers.UserMapper;
 import com.gestion.gestion_bus.models.Abonnement;
+import com.gestion.gestion_bus.models.ResetPasswordToken;
 import com.gestion.gestion_bus.models.Role;
 import com.gestion.gestion_bus.models.User;
 import com.gestion.gestion_bus.repository.AbonnementRepository;
+import com.gestion.gestion_bus.repository.PasswordResetTokenRepository;
 import com.gestion.gestion_bus.repository.RoleRepository;
 import com.gestion.gestion_bus.repository.UserRepository;
 import com.gestion.gestion_bus.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -29,6 +34,7 @@ public class UserServiceImp implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AbonnementRepository abonnementRepository;
+    private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
@@ -162,4 +168,44 @@ public class UserServiceImp implements UserService {
         }
         userRepository.deleteById(id);
     }
+
+    @Override
+    public void resetPassword(String token, String newPassword) {
+        ResetPasswordToken resetPasswordToken = passwordResetTokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Token invalide"));
+        if(resetPasswordToken.getExpiryDate().isBefore(LocalDateTime.now())){
+            throw new RuntimeException("Token expiré");
+        }
+        User user = userRepository.findByEmail(resetPasswordToken.getEmail())
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        passwordResetTokenRepository.delete(resetPasswordToken);
+        userRepository.save(user);
+    }
+
+    @Override
+    @Transactional
+    public String forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+
+        passwordResetTokenRepository.deleteByEmail(email);
+
+        String token = UUID.randomUUID().toString();
+
+        ResetPasswordToken resetPasswordToken = new ResetPasswordToken();
+        resetPasswordToken.setEmail(email);
+        resetPasswordToken.setToken(token);
+        resetPasswordToken.setExpiryDate(
+                LocalDateTime.now().plusHours(1)
+        );
+        passwordResetTokenRepository.save(resetPasswordToken);
+        String resetLink = "myapp://reset-password?token=" + token;
+        System.out.println("Lien deep link généré: " + resetLink);
+
+        return resetLink;
+    }
+
+
 }

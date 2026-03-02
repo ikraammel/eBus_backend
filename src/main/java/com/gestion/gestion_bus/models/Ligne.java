@@ -17,17 +17,22 @@ public class Ligne {
     private Long id;
 
     private String numero;
-    private  double distance;
+    private double distance;
 
-    @OneToMany(mappedBy = "ligne")
+    @OneToMany(mappedBy = "ligne",cascade = CascadeType.ALL)
     private List<Bus> bus;
 
-    @ManyToMany
-    @JoinTable(
-            name = "ligne_station",
-            joinColumns = @JoinColumn(name = "ligne_id"),
-            inverseJoinColumns = @JoinColumn(name = "station_id")
-    )
-    private List<Station> stations;
+    private String startPoint;
+    private String endPoint;
 
+//    @ManyToMany
+//    @JoinTable(
+//            name = "ligne_station",
+//            joinColumns = @JoinColumn(name = "ligne_id"),
+//            inverseJoinColumns = @JoinColumn(name = "station_id")
+//    )
+//    private List<Station> stations;
+
+    @OneToMany(mappedBy = "ligne", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<LigneStation> trajets;
 }

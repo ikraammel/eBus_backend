@@ -21,6 +21,6 @@ public class Station {
     @Embedded
     private Position position;
 
-    @ManyToMany(mappedBy = "stations")
-    private List<Ligne> lignes;
+    @OneToMany(mappedBy = "station")
+    private List<LigneStation> lignesStations;
 }

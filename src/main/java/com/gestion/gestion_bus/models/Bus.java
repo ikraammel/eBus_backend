@@ -16,6 +16,8 @@ public class Bus {
 
     private String etat;
 
+    private String immatriculation;
+
     @ManyToOne
     @JoinColumn(name = "ligne_id")
     private Ligne ligne;

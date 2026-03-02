@@ -59,4 +59,16 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@RequestParam String email){
+        String resetLink = userService.forgotPassword(email);
+        return ResponseEntity.ok("Lien de réinitialisation généré : " + resetLink);
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestParam String token,@RequestParam String newPassword){
+        userService.resetPassword(token,newPassword);
+        return ResponseEntity.ok("Mot de passe rénitialisé avec succès!");
+    }
+
 }
