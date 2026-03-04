@@ -1,8 +1,9 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/ebus
-    username: postgres
-    password: ikram
+#    url: jdbc:postgresql://localhost:5432/ebus
+    url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require
+    username: postgres.khhmxjztnvlejblhzgyb
+    password: smart_bus2026
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
