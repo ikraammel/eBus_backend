@@ -1,9 +1,14 @@
 spring:
   datasource:
 #    url: jdbc:postgresql://localhost:5432/ebus
-    url: jdbc:postgresql://aws-1-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require
-    username: postgres.khhmxjztnvlejblhzgyb
-    password: smart_bus2026
+    hikari:
+      maximum-pool-size: 10   # < 15 pour être sûr
+      minimum-idle: 1
+      idle-timeout: 30000
+      max-lifetime: 300000
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:

@@ -17,12 +17,13 @@ public class LigneMapper {
                 ligne.getTrajets()
                         .stream()
                         .map(ls -> new StationOrdreDto(
+                                ls.getStation().getId(),
                                 ls.getStation().getNom(),
                                 ls.getOrdre(),
-                                ls.getDirection()
+                                ls.getDirection(),
+                                ls.getStation().getPosition()
                         ))
                         .collect(Collectors.toList())
         );
     }
-
 }

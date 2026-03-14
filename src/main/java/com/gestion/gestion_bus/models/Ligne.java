@@ -16,6 +16,7 @@ public class Ligne {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private String numero;
     private double distance;
 

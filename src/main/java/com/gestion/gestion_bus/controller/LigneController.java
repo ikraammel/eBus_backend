@@ -1,6 +1,7 @@
 package com.gestion.gestion_bus.controller;
 
 import com.gestion.gestion_bus.dto.LigneDto;
+import com.gestion.gestion_bus.dto.StationOrdreDto;
 import com.gestion.gestion_bus.service.interfaces.LigneService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -43,6 +44,26 @@ public class LigneController {
     @PatchMapping("/{id}")
     ResponseEntity<LigneDto> updateLine(@PathVariable Long id,@RequestBody LigneDto updatedLine){
         return ResponseEntity.ok(ligneService.updateLine(id,updatedLine));
+    }
+
+    @PostMapping("/station/new/{ligneId}")
+    ResponseEntity<StationOrdreDto> addStation(@RequestBody StationOrdreDto stationOrdreDto,@PathVariable Long ligneId){
+        return ResponseEntity.ok(ligneService.addStation(stationOrdreDto,ligneId));
+    }
+
+    @PatchMapping("/ligne/{ligneId}/station/{stationId}")
+    ResponseEntity<StationOrdreDto> updateStation(
+            @RequestBody StationOrdreDto station,
+            @PathVariable Long ligneId,
+            @PathVariable Long stationId
+    ){
+        return ResponseEntity.ok(ligneService.updateStation(station,ligneId,stationId));
+    }
+
+    @DeleteMapping("/ligne/{ligneId}/station/{stationId}")
+    ResponseEntity<Void> deleteStation(@PathVariable Long ligneId,@PathVariable Long stationId){
+        ligneService.deleteStation(ligneId,stationId);
+        return ResponseEntity.noContent().build();
     }
 
 }
