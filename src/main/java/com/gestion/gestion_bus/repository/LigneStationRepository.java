@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * @author $ {USER}
  **/
 public interface LigneStationRepository extends JpaRepository<LigneStation,Long> {
-    void deleteByStationId(Long stationId);
+    void deleteByLigneIdAndStationId(Long ligneId, Long stationId);
 }

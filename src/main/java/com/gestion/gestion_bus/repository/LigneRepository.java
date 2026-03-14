@@ -7,4 +7,5 @@ import java.util.Optional;
 
 public interface LigneRepository extends JpaRepository<Ligne,Long> {
     Optional<Ligne> findByNumero(String numero);
+
 }

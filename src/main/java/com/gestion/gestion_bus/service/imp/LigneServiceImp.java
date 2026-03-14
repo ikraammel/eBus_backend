@@ -43,10 +43,11 @@ public class LigneServiceImp implements LigneService {
             ls.setLigne(ligne);
 
             // Vérifier si station existe
-            Station station = stationRepository.findByNom(s.getNom())
+            Station station = stationRepository.findFirstByNom(s.getNom())
                     .orElseGet(() -> {
                         Station newStation = new Station();
                         newStation.setNom(s.getNom());
+                        newStation.setPosition(s.getPosition());
                         return stationRepository.save(newStation);
                     });
 
@@ -105,10 +106,11 @@ public class LigneServiceImp implements LigneService {
 
     @Override
     public StationOrdreDto addStation(StationOrdreDto stationDto, Long ligneId) {
+
         Ligne ligne = ligneRepository.findById(ligneId)
                 .orElseThrow(() -> new RuntimeException("Ligne inexistante"));
 
-        Station station = stationRepository.findByNom(stationDto.getNom())
+        Station station = stationRepository.findFirstByNom(stationDto.getNom())
                 .orElseGet(() -> {
                     Station s = new Station();
                     s.setNom(stationDto.getNom());
@@ -121,14 +123,8 @@ public class LigneServiceImp implements LigneService {
         ls.setStation(station);
         ls.setOrdre(stationDto.getOrdre());
         ls.setDirection(stationDto.getDirection());
-        ligne.getTrajets().add(ls);
 
-        Ligne savedLigne = ligneRepository.save(ligne);
-
-        LigneStation savedLs = savedLigne.getTrajets().stream()
-                .filter(t -> t.getStation().getId().equals(station.getId()))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Erreur lors de l'ajout de la station"));
+        LigneStation savedLs = ligneStationRepository.save(ls);
 
         StationOrdreDto resultDto = new StationOrdreDto();
         resultDto.setId(savedLs.getStation().getId());
@@ -136,6 +132,7 @@ public class LigneServiceImp implements LigneService {
         resultDto.setOrdre(savedLs.getOrdre());
         resultDto.setDirection(savedLs.getDirection());
         resultDto.setPosition(savedLs.getStation().getPosition());
+
         return resultDto;
     }
 
@@ -188,6 +185,6 @@ public class LigneServiceImp implements LigneService {
 
         ligne.getTrajets().remove(ls);
         ligneRepository.save(ligne);
-        ligneStationRepository.deleteByStationId(stationId);
+        ligneStationRepository.deleteByLigneIdAndStationId(ligneId, stationId);;
     }
 }
