@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BusDto {
     private Long id;
+    private String numero;
     private String etat;
     private String immatriculation;
     private Long ligneId;

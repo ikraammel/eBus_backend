@@ -7,6 +7,7 @@ public class BusMapper {
     public static BusDto toDto(Bus bus){
         return new BusDto(
            bus.getId(),
+           bus.getNumero(),
            bus.getEtat(),
            bus.getImmatriculation(),
            bus.getLigne().getId()

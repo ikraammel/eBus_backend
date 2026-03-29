@@ -25,6 +25,8 @@ public class BusServiceImp implements BusService {
 
         Ligne ligne = ligneRepository.findById(dto.getLigneId())
                 .orElseThrow(() -> new RuntimeException("Ligne not found"));
+        bus.setNumero(dto.getNumero());
+        bus.setImmatriculation(dto.getImmatriculation());
         bus.setEtat(dto.getEtat());
         bus.setLigne(ligne);
         Bus savedBus = busRepository.save(bus);
@@ -65,6 +67,8 @@ public class BusServiceImp implements BusService {
                 .orElseThrow(() -> new RuntimeException("Bus not found"));
         Ligne ligne = ligneRepository.findById(dto.getLigneId())
                 .orElseThrow(() -> new RuntimeException("Ligne not found"));
+
+        bus.setNumero(dto.getNumero());
         bus.setEtat(dto.getEtat());
         bus.setLigne(ligne);
         bus.setImmatriculation(dto.getImmatriculation());

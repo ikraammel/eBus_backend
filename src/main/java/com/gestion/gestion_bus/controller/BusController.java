@@ -45,7 +45,7 @@ public class BusController {
         return ResponseEntity.ok(busService.updateBus(id,updatedBus));
     }
 
-    @GetMapping("/{immatriculation}")
+    @GetMapping("/immatriculation/{immatriculation}")
     ResponseEntity<BusDto> getBusByImmatriculation(@PathVariable String immatriculation){
         return ResponseEntity.ok(busService.findByImmatriculation(immatriculation));
     }

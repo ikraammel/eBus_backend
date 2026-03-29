@@ -14,6 +14,7 @@ public class Bus {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String numero;
     private String etat;
 
     private String immatriculation;
