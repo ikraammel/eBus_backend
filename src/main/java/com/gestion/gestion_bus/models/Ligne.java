@@ -36,4 +36,7 @@ public class Ligne {
 
     @OneToMany(mappedBy = "ligne", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LigneStation> trajets;
+
+    @OneToMany(mappedBy = "ligne")
+    private List<Reclamation> reclamations;
 }

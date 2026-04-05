@@ -25,6 +25,7 @@ public class SecurityConfig {
                         .requestMatchers("/lignes/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/bus/**").permitAll()
+                        .requestMatchers("/reclamations/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
