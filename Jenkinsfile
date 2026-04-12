@@ -1,20 +1,14 @@
 pipeline {
     agent any
 
-    environment {
-        DB_URL = credentials('db-url')
-        DB_USERNAME = credentials('db-username')
-        DB_PASSWORD = credentials('db-password')
-    }
-
     stages {
 
         stage('Check Env') {
             steps {
-                bat '''
-                    echo DB_URL=%DB_URL%
-                    echo DB_USERNAME=%DB_USERNAME%
-                '''
+              bat '''
+                  echo DB_URL=%DB_URL%
+                  echo DB_USERNAME=%DB_USERNAME%
+                  '''
             }
         }
 
