@@ -8,6 +8,7 @@ pipeline {
               bat '''
                   echo DB_URL=%DB_URL%
                   echo DB_USERNAME=%DB_USERNAME%
+                  echo DB_PASSWORD=%DB_PASSWORD%
                   '''
             }
         }
