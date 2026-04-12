@@ -2,6 +2,16 @@ pipeline {
     agent any
 
     stages {
+
+        stage('Check Env') {
+            steps {
+              bat '''
+                  echo DB_URL=%DB_URL%
+                  echo DB_USERNAME=%DB_USERNAME%
+                  '''
+            }
+        }
+
         stage('Build') {
             steps {
                 bat 'mvn clean package'
