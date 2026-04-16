@@ -5,17 +5,17 @@ spring:
   datasource:
 #    url: jdbc:postgresql://localhost:5432/ebus
     hikari:
-      maximum-pool-size: 10   # < 15 pour être sûr
+      maximum-pool-size: 10
       minimum-idle: 1
       idle-timeout: 30000
       max-lifetime: 300000
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+      url: ${DB_URL}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
         ddl-auto: update
     show-sql: true
- 
+
 

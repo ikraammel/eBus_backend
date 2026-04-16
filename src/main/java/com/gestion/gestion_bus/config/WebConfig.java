@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
                 registry.addMapping("/**") // toutes les routes
                         .allowedOriginPatterns("*") // ton frontend Flutter
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowCredentials(true);
+                        .allowCredentials(false);
             }
         };
     }

@@ -9,10 +9,11 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 public class SecurityConfig {
-    @Bean
-    public PasswordEncoder passwordEncoder(){
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	public PasswordEncoder passwordEncoder(){
+		return new BCryptPasswordEncoder();
+	}
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -26,9 +27,13 @@ public class SecurityConfig {
                         .requestMatchers("/uploads/**").permitAll()
                         .requestMatchers("/bus/**").permitAll()
                         .requestMatchers("/reclamations/**").permitAll()
+					    .requestMatchers("/api/objets/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
         return http.build();
     }
+
+
+
 }
