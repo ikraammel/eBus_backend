@@ -28,6 +28,7 @@ public class SecurityConfig {
                         .requestMatchers("/bus/**").permitAll()
                         .requestMatchers("/reclamations/**").permitAll()
 					    .requestMatchers("/api/objets/**").permitAll()
+					    .requestMatchers("/role/**").permitAll()
                         .anyRequest().authenticated()
                 );
 
