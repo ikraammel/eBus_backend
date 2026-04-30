@@ -17,4 +17,6 @@ public interface BusRepository extends JpaRepository<Bus, Long> {
 
     @Query("SELECT COUNT(b) FROM Bus b WHERE b.etat = 'ACTIF'")
     long countActiveBuses();
+
+    boolean existsByImmatriculation(String immatriculation);
 }

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @Entity
 @Data
@@ -22,6 +23,7 @@ public class Bus {
 
     private Integer capacity;
 
+    @Column(unique = true,nullable = false)
     private String immatriculation;
 
     @ManyToOne

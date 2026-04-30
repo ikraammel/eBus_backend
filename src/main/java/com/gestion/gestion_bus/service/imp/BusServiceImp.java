@@ -22,6 +22,9 @@ public class BusServiceImp implements BusService {
 
     @Override
     public BusDto createBus(BusDto dto) {
+        if(busRepository.existsByImmatriculation(dto.getImmatriculation())){
+            throw new RuntimeException("Immatriculation déjà existante");
+        }
         Bus bus = new Bus();
 
         Ligne ligne = ligneRepository.findById(dto.getLigneId())
@@ -72,6 +75,10 @@ public class BusServiceImp implements BusService {
         bus.setNumero(dto.getNumero());
         bus.setEtat(BusEtat.valueOf(dto.getEtat()));
         bus.setLigne(ligne);
+        if(!bus.getImmatriculation().equals(dto.getImmatriculation()) &&
+        busRepository.existsByImmatriculation(dto.getImmatriculation())){
+            throw new RuntimeException("Immatriculation déjà existante");
+        }
         bus.setImmatriculation(dto.getImmatriculation());
         Bus savedBus = busRepository.save(bus);
         return BusMapper.toDto(savedBus);
