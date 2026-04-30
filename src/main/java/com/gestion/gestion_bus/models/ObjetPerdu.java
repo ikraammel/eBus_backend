@@ -26,7 +26,11 @@ public class ObjetPerdu {
 	@Column(columnDefinition = "TEXT")
 	private String description;
 
-	private String ligne;
+	@ManyToOne
+	@JoinColumn(name = "ligne_id")
+	private Ligne ligne;
+
+	private String imageUrl;
 
 	private String contact;
 

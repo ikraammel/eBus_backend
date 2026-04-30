@@ -3,7 +3,9 @@ package com.gestion.gestion_bus.controller;
 import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.request.UserUpdateDto;
+import com.gestion.gestion_bus.dto.response.DossierResponseDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
+import com.gestion.gestion_bus.service.interfaces.DossierService;
 import com.gestion.gestion_bus.service.interfaces.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import java.util.List;
 
 @RestController
@@ -20,15 +23,20 @@ import java.util.List;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final DossierService dossierService;
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponseDto> register(
-            @Valid @RequestPart("user") UserRequestDto dto,
-            @Valid @RequestPart(value = "photo")MultipartFile photo,
-            @Valid @RequestPart(value = "carteScolaire") MultipartFile carteScolaire,
-            @Valid @RequestPart(value = "cin")MultipartFile cin ) throws IOException {
+            @RequestPart("user") String userJson,
+            @RequestPart("photo") MultipartFile photo,
+            @RequestPart("carteScolaire") MultipartFile carteScolaire,
+            @RequestPart("cinPhoto") MultipartFile cinPhoto
+    ) throws Exception {
 
-        return ResponseEntity.ok(userService.registerUser(dto,photo,carteScolaire,cin));
+        ObjectMapper mapper = new ObjectMapper();
+        UserRequestDto dto = mapper.readValue(userJson, UserRequestDto.class);
+
+        return ResponseEntity.ok(userService.registerUser(dto, photo, carteScolaire, cinPhoto));
     }
 
     @PatchMapping("/update/{id}")
@@ -71,4 +79,8 @@ public class UserController {
         return ResponseEntity.ok("Mot de passe rénitialisé avec succès!");
     }
 
+    @GetMapping("/me/dossier")
+    public DossierResponseDto getMyDossier(@RequestParam Long id) {
+        return dossierService.getMyDossier(id);
+    }
 }

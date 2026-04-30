@@ -16,8 +16,10 @@ public class ObjetPerduResponseDto {
 	private Long id;
 	private String nom;
 	private String description;
-	private String ligne;
+	private Long ligneId;
+	private String ligneNom;
 	private String contact;
+	private String imageUrl;
 
 	private TypeAnnonce type;
 	private StatutObjet statut;

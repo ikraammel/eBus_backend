@@ -1,6 +1,7 @@
 package com.gestion.gestion_bus.service.imp;
 
 import com.gestion.gestion_bus.dto.BusDto;
+import com.gestion.gestion_bus.enums.BusEtat;
 import com.gestion.gestion_bus.mappers.BusMapper;
 import com.gestion.gestion_bus.models.Bus;
 import com.gestion.gestion_bus.models.Ligne;
@@ -27,7 +28,7 @@ public class BusServiceImp implements BusService {
                 .orElseThrow(() -> new RuntimeException("Ligne not found"));
         bus.setNumero(dto.getNumero());
         bus.setImmatriculation(dto.getImmatriculation());
-        bus.setEtat(dto.getEtat());
+        bus.setEtat(BusEtat.valueOf(dto.getEtat()));
         bus.setLigne(ligne);
         Bus savedBus = busRepository.save(bus);
         return BusMapper.toDto(savedBus);
@@ -69,7 +70,7 @@ public class BusServiceImp implements BusService {
                 .orElseThrow(() -> new RuntimeException("Ligne not found"));
 
         bus.setNumero(dto.getNumero());
-        bus.setEtat(dto.getEtat());
+        bus.setEtat(BusEtat.valueOf(dto.getEtat()));
         bus.setLigne(ligne);
         bus.setImmatriculation(dto.getImmatriculation());
         Bus savedBus = busRepository.save(bus);

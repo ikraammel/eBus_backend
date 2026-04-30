@@ -1,5 +1,6 @@
 package com.gestion.gestion_bus.models;
 
+import com.gestion.gestion_bus.enums.BusEtat;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -15,7 +16,11 @@ public class Bus {
     private Long id;
 
     private String numero;
-    private String etat;
+
+    @Enumerated(EnumType.STRING)
+    private BusEtat etat;
+
+    private Integer capacity;
 
     private String immatriculation;
 

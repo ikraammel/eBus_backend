@@ -1,18 +1,14 @@
 package com.gestion.gestion_bus.dto.request;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.*;
+import lombok.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserRequestDto {
+
     @NotBlank(message = "Le nom est obligatoire")
     private String nom;
 
@@ -35,24 +31,16 @@ public class UserRequestDto {
     @NotBlank(message = "Le CIN est obligatoire")
     private String cin;
 
-    @NotBlank(message = "Le CNE est obligatoire")
     private String cne;
 
     @NotBlank(message = "Le mot de passe est obligatoire")
-    @Size(min = 8, message = "Le mot de passe doit contenir au moins 8 caractères")
-    @Pattern(
-            regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$",
-            message = "Le mot de passe doit contenir au moins une lettre et un chiffre"
-    )
+    @Size(min = 8)
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d).+$")
     private String password;
 
     private Long roleId;
 
-    @NotBlank(message = "Le type d'abonnement est obligatoire")
-    private String abonnement;
-
-    private MultipartFile photo;
-    private MultipartFile carteScolaire;
-    private MultipartFile cinPhoto;
+    @NotNull(message = "L'abonnement est obligatoire")
+    private Long abonnementId;
 
 }

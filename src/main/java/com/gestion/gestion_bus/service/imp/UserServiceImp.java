@@ -4,16 +4,11 @@ import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserUpdateDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
-import com.gestion.gestion_bus.enums.TypeAbonnement;
+import com.gestion.gestion_bus.enums.StatusAbonnement;
+import com.gestion.gestion_bus.enums.StatusDossier;
 import com.gestion.gestion_bus.mappers.UserMapper;
-import com.gestion.gestion_bus.models.Abonnement;
-import com.gestion.gestion_bus.models.ResetPasswordToken;
-import com.gestion.gestion_bus.models.Role;
-import com.gestion.gestion_bus.models.User;
-import com.gestion.gestion_bus.repository.AbonnementRepository;
-import com.gestion.gestion_bus.repository.PasswordResetTokenRepository;
-import com.gestion.gestion_bus.repository.RoleRepository;
-import com.gestion.gestion_bus.repository.UserRepository;
+import com.gestion.gestion_bus.models.*;
+import com.gestion.gestion_bus.repository.*;
 import com.gestion.gestion_bus.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -31,6 +26,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class UserServiceImp implements UserService {
+
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final AbonnementRepository abonnementRepository;
@@ -38,23 +34,39 @@ public class UserServiceImp implements UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
+    private final TypeAbonnementRepository typeAbonnementRepository;
+    private final DossierRepository dossierRepository;
 
     @Override
+    @Transactional
     public UserResponseDto registerUser(UserRequestDto dto,
                                         MultipartFile photo,
                                         MultipartFile carteScolaire,
-                                        MultipartFile cin) {
-        if(userRepository.existsByEmail(dto.getEmail())){
-            throw new RuntimeException("Email déjà utilisé");
+                                        MultipartFile cinPhoto) {
+
+        verifyChamps(dto, photo, carteScolaire, cinPhoto);
+
+        String cinClean = dto.getCin().trim();
+        String cne = dto.getCne() != null ? dto.getCne().trim() : null;
+
+        verifyUnicity(dto, cinClean, cne);
+
+        TypeAbonnement type = typeAbonnementRepository.findById(dto.getAbonnementId())
+                .orElseThrow(() -> new RuntimeException("Type abonnement introuvable"));
+
+        if (!type.isActif()) {
+            throw new RuntimeException("Type abonnement désactivé");
         }
-        if(userRepository.existsByCin(dto.getCin())){
-            throw new RuntimeException("CIN déjà existante");
-        }
-        if(userRepository.existsByCne(dto.getCne())){
-            throw new RuntimeException("CNE déjà existante");
-        }
-        if(userRepository.existsByTel(dto.getTel())){
-            throw new RuntimeException("Téléphone déjà utilisé");
+
+        boolean needsCne =
+                type.getNom() != null &&
+                        (type.getNom().equalsIgnoreCase("SCOLAIRE")
+                                || type.getNom().toUpperCase().contains("ETUDIANT"));
+
+        if (needsCne) {
+            if (cne == null || cne.isBlank()) {
+                throw new RuntimeException("CNE obligatoire pour cet abonnement");
+            }
         }
 
         Role role = roleRepository.findByName("USER")
@@ -68,35 +80,85 @@ public class UserServiceImp implements UserService {
         user.setTel(dto.getTel());
         user.setEmail(dto.getEmail());
         user.setAdresse(dto.getAdresse());
-        user.setCin(dto.getCin());
-        user.setCne(dto.getCne());
+        user.setCin(cinClean);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-
-        String photoUrl = fileStorageService.save(photo);
-        String carteUrl = fileStorageService.save(carteScolaire);
-        String cinUrl = fileStorageService.save(cin);
-
-        user.setPhotoUrl(photoUrl);
-        user.setCarteScolaireUrl(carteUrl);
-        user.setCinUrl(cinUrl);
+        user.setCne(needsCne ? cne : null);
+        user.setPhotoUrl(fileStorageService.save(photo));
+        user.setCarteScolaireUrl(fileStorageService.save(carteScolaire));
+        user.setCinUrl(fileStorageService.save(cinPhoto));
 
         User savedUser = userRepository.save(user);
+        Dossier dossier = new Dossier();
+        dossier.setUser(savedUser);
+        dossier.setStatus(StatusDossier.EN_ATTENTE);
 
-        if (dto.getAbonnement() != null) {
-            Abonnement abonnement = new Abonnement();
-            try {
-                abonnement.setType(TypeAbonnement.valueOf(dto.getAbonnement().toUpperCase()));
-            } catch (IllegalArgumentException e) {
-                throw new RuntimeException("Type d'abonnement invalide");
-            }
-            abonnement.setUser(savedUser);
-            abonnement.setDateDebut(LocalDate.now());
-            abonnement.setDateFin(LocalDate.now().plusMonths(12));
-            abonnementRepository.save(abonnement);
-            savedUser.setAbonnement(abonnement);
-        }
+        dossierRepository.save(dossier);
 
-        return userMapper.toDto(savedUser);
+        Abonnement abonnement = new Abonnement();
+        abonnement.setUser(savedUser);
+        abonnement.setTypeAbonnement(type);
+        abonnement.setPrix(type.getPrix());
+        abonnement.setDateDebut(LocalDate.now());
+        abonnement.setDateFin(LocalDate.now().plusMonths(type.getDureeMois()));
+        abonnement.setStatus(StatusAbonnement.EN_ATTENTE);
+
+        abonnementRepository.save(abonnement);
+        savedUser.getAbonnements().add(abonnement);
+
+        User userWithAbonnement =
+                userRepository.findByIdWithAbonnements(savedUser.getId())
+                        .orElseThrow();
+
+        System.out.println("DTO CNE = " + dto.getCne());
+        System.out.println("CNE saved = " + savedUser.getCne());
+        System.out.println("CNE fetched = " + userWithAbonnement.getCne());
+        System.out.println("TYPE = " + type.getNom());
+        System.out.println("NEEDS_CNE = " + needsCne);
+        return userMapper.toDto(userWithAbonnement);
+    }
+
+    private void verifyChamps(UserRequestDto dto,
+                              MultipartFile photo,
+                              MultipartFile carteScolaire,
+                              MultipartFile cinPhoto) {
+
+        if (dto.getNom() == null || dto.getNom().isBlank())
+            throw new RuntimeException("Nom obligatoire");
+
+        if (dto.getPrenom() == null || dto.getPrenom().isBlank())
+            throw new RuntimeException("Prénom obligatoire");
+
+        if (dto.getEmail() == null || dto.getEmail().isBlank())
+            throw new RuntimeException("Email obligatoire");
+
+        if (dto.getPassword() == null || dto.getPassword().isBlank())
+            throw new RuntimeException("Mot de passe obligatoire");
+
+        if (dto.getCin() == null || dto.getCin().isBlank())
+            throw new RuntimeException("CIN obligatoire");
+
+        if (dto.getTel() == null || dto.getTel().isBlank())
+            throw new RuntimeException("Téléphone obligatoire");
+
+        if (dto.getAbonnementId() == null)
+            throw new RuntimeException("Type abonnement obligatoire");
+
+        if (photo == null || carteScolaire == null || cinPhoto == null)
+            throw new RuntimeException("Documents obligatoires");
+    }
+
+    private void verifyUnicity(UserRequestDto dto,String cinClean,String cne){
+        if (userRepository.existsByEmail(dto.getEmail()))
+            throw new RuntimeException("Email déjà utilisé");
+
+        if (userRepository.existsByCin(cinClean))
+            throw new RuntimeException("CIN déjà utilisé");
+
+        if (userRepository.existsByTel(dto.getTel()))
+            throw new RuntimeException("Téléphone déjà utilisé");
+
+        if (cne != null && !cne.isBlank() && userRepository.existsByCne(cne))
+            throw new RuntimeException("CNE déjà utilisé");
     }
 
     @Override
@@ -104,17 +166,19 @@ public class UserServiceImp implements UserService {
         User user = userRepository.findByEmail(login.getEmail())
                 .orElseThrow(() -> new RuntimeException("Email ou mot de passe incorrect"));
 
-        if(!passwordEncoder.matches(login.getPassword(),user.getPassword())){
+        if (!passwordEncoder.matches(login.getPassword(), user.getPassword())) {
             throw new RuntimeException("Email ou mot de passe incorrect");
         }
+
         return userMapper.toDto(user);
     }
 
     @Override
     public UserResponseDto getUserById(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
-        return userMapper.toDto(user);
+        return userMapper.toDto(
+                userRepository.findById(id)
+                        .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"))
+        );
     }
 
     @Override
@@ -126,39 +190,25 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public UserResponseDto updateUser(Long id, UserUpdateDto userUpdateDto) {
-        User user1 = userRepository.findById(id)
+    public UserResponseDto updateUser(Long id, UserUpdateDto dto) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
-        if (userUpdateDto.getNom() != null) {
-            user1.setNom(userUpdateDto.getNom());
-        }
 
-        if (userUpdateDto.getPrenom() != null) {
-            user1.setPrenom(userUpdateDto.getPrenom());
-        }
+        if (dto.getNom() != null) user.setNom(dto.getNom());
+        if (dto.getPrenom() != null) user.setPrenom(dto.getPrenom());
+        if (dto.getEmail() != null) user.setEmail(dto.getEmail());
+        if (dto.getAdresse() != null) user.setAdresse(dto.getAdresse());
+        if (dto.getDateNaissance() != null) user.setDateNaissance(dto.getDateNaissance());
 
-        if (userUpdateDto.getEmail() != null) {
-            user1.setEmail(userUpdateDto.getEmail());
-        }
-
-        if (userUpdateDto.getAdresse() != null) {
-            user1.setAdresse(userUpdateDto.getAdresse());
-        }
-
-        if (userUpdateDto.getDateNaissance() != null) {
-            user1.setDateNaissance(userUpdateDto.getDateNaissance());
-        }
-
-        if (userUpdateDto.getTel() != null) {
-            Optional<User> existingUser = userRepository.findByTel(userUpdateDto.getTel());
-            if(existingUser.isPresent() && !existingUser.get().getId().equals(user1.getId())){
-                throw new RuntimeException("Ce numéro de téléphone est déjà utilisé");
+        if (dto.getTel() != null) {
+            Optional<User> existing = userRepository.findByTel(dto.getTel());
+            if (existing.isPresent() && !existing.get().getId().equals(user.getId())) {
+                throw new RuntimeException("Téléphone déjà utilisé");
             }
-            user1.setTel(userUpdateDto.getTel());
+            user.setTel(dto.getTel());
         }
 
-        User savedUser = userRepository.save(user1);
-        return userMapper.toDto(savedUser);
+        return userMapper.toDto(userRepository.save(user));
     }
 
     @Override
@@ -171,16 +221,19 @@ public class UserServiceImp implements UserService {
 
     @Override
     public void resetPassword(String token, String newPassword) {
-        ResetPasswordToken resetPasswordToken = passwordResetTokenRepository.findByToken(token)
+        ResetPasswordToken reset = passwordResetTokenRepository.findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Token invalide"));
-        if(resetPasswordToken.getExpiryDate().isBefore(LocalDateTime.now())){
+
+        if (reset.getExpiryDate().isBefore(LocalDateTime.now())) {
             throw new RuntimeException("Token expiré");
         }
-        User user = userRepository.findByEmail(resetPasswordToken.getEmail())
+
+        User user = userRepository.findByEmail(reset.getEmail())
                 .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
         user.setPassword(passwordEncoder.encode(newPassword));
-        passwordResetTokenRepository.delete(resetPasswordToken);
+
+        passwordResetTokenRepository.delete(reset);
         userRepository.save(user);
     }
 
@@ -194,18 +247,13 @@ public class UserServiceImp implements UserService {
 
         String token = UUID.randomUUID().toString();
 
-        ResetPasswordToken resetPasswordToken = new ResetPasswordToken();
-        resetPasswordToken.setEmail(email);
-        resetPasswordToken.setToken(token);
-        resetPasswordToken.setExpiryDate(
-                LocalDateTime.now().plusHours(1)
-        );
-        passwordResetTokenRepository.save(resetPasswordToken);
-        String resetLink = "myapp://reset-password?token=" + token;
-        System.out.println("Lien deep link généré: " + resetLink);
+        ResetPasswordToken reset = new ResetPasswordToken();
+        reset.setEmail(email);
+        reset.setToken(token);
+        reset.setExpiryDate(LocalDateTime.now().plusHours(1));
 
-        return resetLink;
+        passwordResetTokenRepository.save(reset);
+
+        return "myapp://reset-password?token=" + token;
     }
-
-
 }

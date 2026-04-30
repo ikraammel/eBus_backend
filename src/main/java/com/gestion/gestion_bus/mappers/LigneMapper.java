@@ -3,9 +3,11 @@ package com.gestion.gestion_bus.mappers;
 import com.gestion.gestion_bus.dto.LigneDto;
 import com.gestion.gestion_bus.dto.StationOrdreDto;
 import com.gestion.gestion_bus.models.Ligne;
+import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
+@Component
 public class LigneMapper {
     public static LigneDto toDto(Ligne ligne){
         return new LigneDto(

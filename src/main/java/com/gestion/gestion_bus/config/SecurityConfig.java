@@ -29,6 +29,11 @@ public class SecurityConfig {
                         .requestMatchers("/reclamations/**").permitAll()
 					    .requestMatchers("/api/objets/**").permitAll()
 					    .requestMatchers("/role/**").permitAll()
+					    .requestMatchers("/tickets/**").permitAll()
+					    .requestMatchers("/abonnements/**").permitAll()
+					    .requestMatchers("/types-abonnement/**").permitAll()
+					    .requestMatchers("/admin/**").permitAll()
+					    .requestMatchers("/admin/dossiers/**").permitAll()
                         .anyRequest().authenticated()
                 );
 

@@ -18,11 +18,11 @@ public class ObjetPerduRequestDto {
 
 	private String nom;
 	private String description;
-	private String ligne;
+	private Long ligneId;
 	private String contact;
-
 	private TypeAnnonce type;
 	private StatutObjet statut;
+	private String imageUrl;
 
 	private Long userId;
 	private LocalDateTime dateDeclaration;

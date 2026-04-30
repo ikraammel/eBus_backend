@@ -18,6 +18,7 @@ public class UserResponseDto {
     private String role;
     private String dateNaissance;
     private String typeAbonnement;
+    private String statutAbonnement;
     private String photoUrl;
     private String carteScolaireUrl;
     private String cinUrl;

@@ -1,8 +1,11 @@
 package com.gestion.gestion_bus.mappers;
 
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
+import com.gestion.gestion_bus.models.Abonnement;
 import com.gestion.gestion_bus.models.User;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
 
 @Component
 public class UserMapper {
@@ -23,10 +26,24 @@ public class UserMapper {
         dto.setCarteScolaireUrl(user.getCarteScolaireUrl());
         dto.setCinUrl(user.getCinUrl());
 
-        if (user.getAbonnement() != null && user.getAbonnement().getType() != null) {
-            dto.setTypeAbonnement(user.getAbonnement().getType().name()); // .name() convertit enum -> String
+        if (user.getAbonnements() != null && !user.getAbonnements().isEmpty()) {
+
+            Abonnement last = user.getAbonnements()
+                    .stream()
+                    .max(Comparator.comparing(Abonnement::getDateDebut))
+                    .orElse(null);
+
+            if (last != null) {
+                dto.setTypeAbonnement(last.getTypeAbonnement().getNom()); // ETUDIANT_ANNUEL
+                dto.setStatutAbonnement(last.getStatus().name());         // EN_ATTENTE
+            } else {
+                dto.setTypeAbonnement(null);
+                dto.setStatutAbonnement(null);
+            }
+
         } else {
             dto.setTypeAbonnement(null);
+            dto.setStatutAbonnement(null);
         }
 
         return dto;

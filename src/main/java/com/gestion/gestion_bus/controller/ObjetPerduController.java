@@ -6,20 +6,20 @@ import com.gestion.gestion_bus.enums.StatutObjet;
 import com.gestion.gestion_bus.service.interfaces.ObjetPerduService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/objets")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class ObjetPerduController {
 
 	private final ObjetPerduService objetPerduService;
 
-	// ─── ADMIN ─────────────────────────────────────────────
 
 	@GetMapping("/admin/all")
 	public ResponseEntity<List<ObjetPerduResponseDto>> getAllAdmin() {
@@ -41,14 +41,13 @@ public class ObjetPerduController {
 		return ResponseEntity.noContent().build();
 	}
 
-	// ─── USER ─────────────────────────────────────────────
-
-	@PostMapping("/declaration")
+	@PostMapping(value = "/declaration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ObjetPerduResponseDto> declare(
-		@Valid @RequestBody ObjetPerduRequestDto dto
+			@RequestPart("data") ObjetPerduRequestDto dto,
+			@RequestPart(value = "image", required = false) MultipartFile image
 	) {
-		ObjetPerduResponseDto created = objetPerduService.declare(dto);
-		return ResponseEntity.ok(created); // 🔥 FIX: OK au lieu de 201 (plus stable Flutter)
+		ObjetPerduResponseDto created = objetPerduService.declare(dto, image);
+		return ResponseEntity.ok(created);
 	}
 
 	@GetMapping("/{id}")

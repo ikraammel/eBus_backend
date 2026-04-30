@@ -4,9 +4,7 @@ import com.gestion.gestion_bus.dto.ReclamationDto;
 import com.gestion.gestion_bus.models.Reclamation;
 import org.springframework.stereotype.Component;
 
-/**
- * @author $ {USER}
- **/
+
 @Component
 public class ReclamationMapper {
     public ReclamationDto toReclamationDto(Reclamation reclamation){

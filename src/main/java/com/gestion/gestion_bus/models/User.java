@@ -1,11 +1,13 @@
 package com.gestion.gestion_bus.models;
 
+import com.gestion.gestion_bus.enums.StatusDossier;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -49,11 +51,14 @@ public class User {
     @OneToMany(mappedBy = "user")
     private List<Ticket> tickets;
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Abonnement abonnement;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Abonnement> abonnements = new ArrayList<>();
 
     @OneToMany(mappedBy = "user")
     private List<Reclamation> reclamations;
+
+    @Enumerated(EnumType.STRING)
+    private StatusDossier statusDossier = StatusDossier.EN_ATTENTE;
 
     @OneToMany(mappedBy = "user")
     private List<ObjetPerdu> objetsPerdus;

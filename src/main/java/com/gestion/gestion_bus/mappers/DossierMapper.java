@@ -1,0 +1,60 @@
+package com.gestion.gestion_bus.mappers;
+
+import com.gestion.gestion_bus.dto.response.DossierResponseDto;
+import com.gestion.gestion_bus.enums.StatusAbonnement;
+import com.gestion.gestion_bus.models.Abonnement;
+import com.gestion.gestion_bus.models.Dossier;
+import com.gestion.gestion_bus.models.User;
+import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
+
+@Component
+public class DossierMapper {
+
+    public DossierResponseDto toDto(Dossier dossier, Abonnement abonnement) {
+
+        User user = dossier.getUser();
+
+        DossierResponseDto dto = new DossierResponseDto();
+
+        dto.setId(dossier.getId());
+        dto.setUserId(user.getId());
+
+        dto.setNom(user.getNom());
+        dto.setPrenom(user.getPrenom());
+        dto.setEmail(user.getEmail());
+        dto.setTel(user.getTel());
+        dto.setAdresse(user.getAdresse());
+        dto.setCin(user.getCin());
+        dto.setCne(user.getCne());
+
+        dto.setPhotoUrl(user.getPhotoUrl());
+        dto.setCinUrl(user.getCinUrl());
+        dto.setCarteScolaireUrl(user.getCarteScolaireUrl());
+
+        if (abonnement != null) {
+            dto.setTypeAbonnement(abonnement.getTypeAbonnement() != null
+                    ? abonnement.getTypeAbonnement().getNom()
+                    : null);
+
+            dto.setPrix(abonnement.getPrix());
+            dto.setDureeMois(abonnement.getTypeAbonnement() != null
+                    ? abonnement.getTypeAbonnement().getDureeMois()
+                    : 0);
+
+            dto.setDateDebutAbonnement(abonnement.getDateDebut());
+            dto.setDateFinAbonnement(abonnement.getDateFin());
+
+            dto.setStatusAbonnement(
+                    abonnement.getDateFin().isBefore(LocalDate.now())
+                            ? StatusAbonnement.EXPIRE.name()
+                            : abonnement.getStatus().name()
+            );
+        }
+
+        dto.setStatusDossier(dossier.getStatus().name());
+
+        return dto;
+    }
+}
