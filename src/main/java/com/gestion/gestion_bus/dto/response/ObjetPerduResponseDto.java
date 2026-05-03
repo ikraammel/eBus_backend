@@ -27,4 +27,6 @@ public class ObjetPerduResponseDto {
 	private LocalDateTime dateDeclaration;
 
 	private Long userId;
-	private String userNom;}
+	private String userNom;
+	private Long busId;
+	private String busImmatriculation;}

@@ -22,8 +22,8 @@ public class ObjetPerduRequestDto {
 	private String contact;
 	private TypeAnnonce type;
 	private StatutObjet statut;
-	private String imageUrl;
 
 	private Long userId;
 	private LocalDateTime dateDeclaration;
+	private Long busId;
 }

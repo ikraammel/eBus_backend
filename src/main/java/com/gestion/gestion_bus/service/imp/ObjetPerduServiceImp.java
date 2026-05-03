@@ -2,9 +2,11 @@ package com.gestion.gestion_bus.service.imp;
 
 import com.gestion.gestion_bus.dto.response.ObjetPerduResponseDto;
 import com.gestion.gestion_bus.enums.StatutObjet;
+import com.gestion.gestion_bus.models.Bus;
 import com.gestion.gestion_bus.models.Ligne;
 import com.gestion.gestion_bus.models.ObjetPerdu;
 import com.gestion.gestion_bus.models.User;
+import com.gestion.gestion_bus.repository.BusRepository;
 import com.gestion.gestion_bus.repository.LigneRepository;
 import com.gestion.gestion_bus.repository.ObjetPerduRepository;
 import com.gestion.gestion_bus.repository.UserRepository;
@@ -34,6 +36,7 @@ public class ObjetPerduServiceImp implements ObjetPerduService {
 	private final ObjetPerduRepository objetPerduRepository;
 	private final UserRepository userRepository;
 	private final LigneRepository ligneRepository;
+	private final BusRepository busRepository;
 	private final ObjetPerduMapper objetPerduMapper;
 
 	@Override
@@ -65,7 +68,6 @@ public class ObjetPerduServiceImp implements ObjetPerduService {
 		objet.setContact(dto.getContact());
 		objet.setType(dto.getType());
 		objet.setStatut(dto.getStatut() != null ? dto.getStatut() : StatutObjet.EN_ATTENTE);
-		objet.setImageUrl(dto.getImageUrl());
 
 		objet.setDateDeclaration(
 			dto.getDateDeclaration() != null ? dto.getDateDeclaration() : LocalDateTime.now()
@@ -76,9 +78,20 @@ public class ObjetPerduServiceImp implements ObjetPerduService {
 			objet.setUser(user);
 		}
 
+		if (dto.getBusId() != null) {
+			Bus bus = busRepository.findById(dto.getBusId())
+				.orElseThrow(() -> new RuntimeException("Bus introuvable"));
+			objet.setBus(bus);
+		}
+
+		System.out.println("IMAGE NULL ? " + (image == null));
+		if (image != null) {
+			System.out.println("IMAGE NAME = " + image.getOriginalFilename());
+			System.out.println("IMAGE SIZE = " + image.getSize());
+		}
+
 		if (image != null && !image.isEmpty()) {
 			String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-
 			String uploadDir = "uploads/";
 
 			try {

@@ -43,11 +43,10 @@ public class ObjetPerduController {
 
 	@PostMapping(value = "/declaration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ObjetPerduResponseDto> declare(
-			@RequestPart("data") ObjetPerduRequestDto dto,
+			@ModelAttribute ObjetPerduRequestDto dto,
 			@RequestPart(value = "image", required = false) MultipartFile image
 	) {
-		ObjetPerduResponseDto created = objetPerduService.declare(dto, image);
-		return ResponseEntity.ok(created);
+		return ResponseEntity.ok(objetPerduService.declare(dto, image));
 	}
 
 	@GetMapping("/{id}")

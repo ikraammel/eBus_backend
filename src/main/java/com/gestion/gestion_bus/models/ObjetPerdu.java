@@ -54,6 +54,10 @@ public class ObjetPerdu {
 	@JoinColumn(name = "user_id")
 	private User user;
 
+	@ManyToOne
+	@JoinColumn(name = "bus_id")
+	private Bus bus;
+
 
 	@PrePersist
 	protected void onCreate() {

@@ -23,6 +23,8 @@ public class ObjetPerduMapper {
 			.dateDeclaration(objet.getDateDeclaration())
 			.userId(objet.getUser() != null ? objet.getUser().getId() : null)
 			.userNom(objet.getUser() != null ? objet.getUser().getNom() : null)
+			.busId(objet.getBus() != null ? objet.getBus().getId() : null)
+			.busImmatriculation(objet.getBus() != null ? objet.getBus().getImmatriculation() : null)
 			.build();
 	}
 }
