@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -16,7 +17,7 @@ public class ReclamationDto {
     private String titre;
     private String description;
     private ReclamationStatus status;
-    private LocalDate date;
+    private LocalDateTime date;
     private Long userId;
     private Long ligneId;
 }

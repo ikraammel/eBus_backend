@@ -33,6 +33,7 @@ public class SecurityConfig {
 					    .requestMatchers("/abonnements/**").permitAll()
 					    .requestMatchers("/types-abonnement/**").permitAll()
 					    .requestMatchers("/admin/**").permitAll()
+					    .requestMatchers("/activities/**").permitAll()
 					    .requestMatchers("/admin/dossiers/**").permitAll()
                         .anyRequest().authenticated()
                 );

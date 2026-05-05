@@ -98,8 +98,8 @@ public class UserServiceImp implements UserService {
         abonnement.setUser(savedUser);
         abonnement.setTypeAbonnement(type);
         abonnement.setPrix(type.getPrix());
-        abonnement.setDateDebut(LocalDate.now());
-        abonnement.setDateFin(LocalDate.now().plusMonths(type.getDureeMois()));
+        abonnement.setDateDebut(LocalDateTime.now());
+        abonnement.setDateFin(LocalDateTime.now().plusMonths(type.getDureeMois()));
         abonnement.setStatus(StatusAbonnement.EN_ATTENTE);
 
         abonnementRepository.save(abonnement);

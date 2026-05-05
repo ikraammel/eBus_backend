@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -28,7 +29,7 @@ public class AbonnementServiceImp implements AbonnementService {
 
         AbonnementDto dto = AbonnementMapper.mapToDto(a);
 
-        if (a.getDateFin() != null && a.getDateFin().isBefore(LocalDate.now())) {
+        if (a.getDateFin() != null && a.getDateFin().isBefore(LocalDateTime.now())) {
             dto.setStatus(StatusAbonnement.EXPIRE);
         }
 
@@ -52,8 +53,8 @@ public class AbonnementServiceImp implements AbonnementService {
         a.setTypeAbonnement(type);
         a.setPrix(type.getPrix());
 
-        a.setDateDebut(LocalDate.now());
-        a.setDateFin(LocalDate.now().plusMonths(type.getDureeMois()));
+        a.setDateDebut(LocalDateTime.now());
+        a.setDateFin(LocalDateTime.now().plusMonths(type.getDureeMois()));
 
         a.setStatus(StatusAbonnement.EN_ATTENTE);
 

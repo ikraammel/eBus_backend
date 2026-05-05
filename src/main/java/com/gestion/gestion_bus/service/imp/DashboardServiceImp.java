@@ -25,6 +25,7 @@ public class DashboardServiceImp implements DashboardService {
     private final TrajetRepository trajetRepository;
     private final AlertRepository alertRepository;
 
+
     public DashboardResponse getDashboardData() {
         LocalDateTime startOfDay = LocalDateTime.now().with(LocalTime.MIN);
         LocalDateTime endOfDay = LocalDateTime.now().with(LocalTime.MAX);
