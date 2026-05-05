@@ -2,7 +2,6 @@ package com.gestion.gestion_bus.service.imp;
 
 import com.gestion.gestion_bus.dto.CreateTicketDto;
 import com.gestion.gestion_bus.dto.TicketDto;
-import com.gestion.gestion_bus.enums.TypeTicket;
 import com.gestion.gestion_bus.mappers.TicketMapper;
 import com.gestion.gestion_bus.models.Ticket;
 import com.gestion.gestion_bus.repository.TicketRepository;
@@ -46,7 +45,7 @@ public class TicketServiceImp implements TicketService {
                 .orElseThrow(() -> new RuntimeException("Ticket not found"));
 
         ticket.setPrix(dto.getPrix());
-        ticket.setTypeTicket(TypeTicket.valueOf(dto.getTypeTicket()));
+        ticket.setTypeTicket(dto.getTypeTicket());
         return TicketMapper.mapToDTO(ticketRepository.save(ticket));
     }
 
