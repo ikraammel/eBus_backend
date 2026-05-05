@@ -1,6 +1,7 @@
 package com.gestion.gestion_bus.controller;
 
 
+import com.gestion.gestion_bus.dto.request.RejectRequest;
 import com.gestion.gestion_bus.dto.response.DossierResponseDto;
 import com.gestion.gestion_bus.service.interfaces.DossierService;
 import lombok.RequiredArgsConstructor;
@@ -36,8 +37,8 @@ public class AdminDossierController {
     }
 
     @PatchMapping("/{id}/rejeter")
-    public void rejeter(@PathVariable Long id) {
-        adminService.rejeterDossier(id);
+    public void rejeter(@PathVariable Long id,@RequestBody RejectRequest request) {
+        adminService.rejeterDossier(id,request.getRejectionReason());
     }
 
 }

@@ -28,6 +28,7 @@ public class DossierResponseDto {
     private int dureeMois;
 
     private String statusDossier;
+    private String rejectionReason;
 
     private LocalDateTime dateDebutAbonnement;
     private LocalDateTime dateFinAbonnement;

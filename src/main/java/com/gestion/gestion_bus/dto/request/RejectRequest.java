@@ -1,7 +1,7 @@
 package com.gestion.gestion_bus.dto.request;
+import lombok.Data;
 
-/**
- * @author $ {USER}
- **/
+@Data
 public class RejectRequest {
+    private String rejectionReason;
 }
