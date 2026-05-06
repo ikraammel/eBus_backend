@@ -1,20 +1,23 @@
-server:
-  port: ${PORT:8080}
-
 spring:
   datasource:
     url: ${DB_URL}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 1
-      idle-timeout: 30000
-      max-lifetime: 300000
-
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ikramelhoul@gmail.com
+    password: glqu xhad ysts nfzc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
