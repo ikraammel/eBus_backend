@@ -18,19 +18,24 @@ spring:
             ddl-auto: update
         show-sql: true
 
-    # --- LA CORRECTION EST ICI ---
-    # La section mail doit être alignée sous 'spring'
     mail:
         host: smtp.gmail.com
         port: 587
-        username:
-        password: ${MAIL_USERNAME} # Utilisez des guillemets pour éviter les erreurs avec les espaces
+        username: ${MAIL_USERNAME}
+        password: ${MAIL_PASSWORD}
         properties:
             mail:
                 smtp:
                     auth: true
                     starttls:
                         enable: true
-    # -----------------------------
 
+stripe:
+    api:
+        key: ${STRIPE_SECRET_KEY}
 
+    webhook:
+        secret: ${STRIPE_WEBHOOK_SECRET}
+
+app:
+    frontend-url: http://localhost:61624
