@@ -19,6 +19,7 @@ public class Payment {
     private double montant;
     private String statut; // PAYE, EN_ATTENTE
     private LocalDate datePaiement;
+	private String stripePaymentIntentId;
 
     @ManyToOne
     private User user;

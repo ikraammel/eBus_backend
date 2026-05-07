@@ -9,7 +9,7 @@ public interface DossierService {
     List<DossierResponseDto> getDossiersEnAttente();
     DossierResponseDto getDossier(Long id);
     void validerDossier(Long id);
-    void rejeterDossier(Long id);
+    void rejeterDossier(Long id,String reason);
     DossierResponseDto getMyDossier(Long userId);
     List<DossierResponseDto> getAllDossiers();
 }

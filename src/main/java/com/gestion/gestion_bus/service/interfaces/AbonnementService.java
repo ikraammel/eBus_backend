@@ -7,9 +7,19 @@ import java.util.List;
 
 public interface AbonnementService {
 
-    AbonnementDto createAbonnement(Long userId, Long typeId);
-    AbonnementDto getAbonnementByUser(Long userId);
-    List<AbonnementDto> getAllAbonnements();
-    void deleteAbonnement(Long id);
+    String createAbonnement(Long userId, Long typeId) throws Exception;
+
     AbonnementDto updateStatus(Long id, StatusAbonnement status);
+
+
+    AbonnementDto getAbonnementByUser(Long userId);
+
+    AbonnementDto getAbonnementById(Long id);
+
+    List<AbonnementDto> getAllAbonnements();
+
+
+    List<AbonnementDto> getHistoriqueByUser(Long userId);
+
+    void deleteAbonnement(Long id);
 }

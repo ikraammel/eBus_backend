@@ -1,6 +1,5 @@
 package com.gestion.gestion_bus.models;
 
-import com.gestion.gestion_bus.enums.TypeTicket;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,8 +17,7 @@ public class Ticket {
 
     private double prix;
 
-    @Enumerated(EnumType.STRING)
-    private TypeTicket typeTicket;
+    private String typeTicket;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

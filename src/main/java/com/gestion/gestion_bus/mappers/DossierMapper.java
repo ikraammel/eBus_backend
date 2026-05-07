@@ -8,6 +8,7 @@ import com.gestion.gestion_bus.models.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Component
 public class DossierMapper {
@@ -45,9 +46,10 @@ public class DossierMapper {
 
             dto.setDateDebutAbonnement(abonnement.getDateDebut());
             dto.setDateFinAbonnement(abonnement.getDateFin());
+            dto.setRejectionReason(dossier.getRejectionReason());
 
             dto.setStatusAbonnement(
-                    abonnement.getDateFin().isBefore(LocalDate.now())
+                    abonnement.getDateFin().isBefore(LocalDateTime.now())
                             ? StatusAbonnement.EXPIRE.name()
                             : abonnement.getStatus().name()
             );

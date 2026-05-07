@@ -28,4 +28,5 @@ public class Dossier {
     private LocalDateTime createdAt = LocalDateTime.now();
 
     private LocalDateTime updatedAt;
+    private String rejectionReason;
 }

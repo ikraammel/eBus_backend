@@ -3,9 +3,7 @@ package com.gestion.gestion_bus.service.imp;
 import com.gestion.gestion_bus.dto.*;
 import com.gestion.gestion_bus.dto.response.DashboardResponse;
 import com.gestion.gestion_bus.models.Alert;
-import com.gestion.gestion_bus.repository.AlertRepository;
-import com.gestion.gestion_bus.repository.BusRepository;
-import com.gestion.gestion_bus.repository.TrajetRepository;
+import com.gestion.gestion_bus.repository.*;
 import com.gestion.gestion_bus.service.interfaces.DashboardService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +22,9 @@ public class DashboardServiceImp implements DashboardService {
     private final BusRepository busRepository;
     private final TrajetRepository trajetRepository;
     private final AlertRepository alertRepository;
+    private final UserRepository userRepository;
+    private final ReclamationRepository reclamationRepository;
+    private final ObjetPerduRepository objetPerduRepository;
 
     public DashboardResponse getDashboardData() {
         LocalDateTime startOfDay = LocalDateTime.now().with(LocalTime.MIN);
@@ -33,6 +34,10 @@ public class DashboardServiceImp implements DashboardService {
         return DashboardResponse.builder()
                 .timestamp(Instant.now())
                 .refreshInterval(30)
+                .users(userRepository.count())
+                .bus(busRepository.countActiveBuses())
+                .reclamations(reclamationRepository.count())
+                .objets(objetPerduRepository.count())
                 .kpis(buildKPIs(startOfDay, endOfDay, startOfYesterday))
                 .realtimeOccupancy(buildRealtimeOccupancy())
                 .alerts(buildAlerts())
@@ -136,7 +141,7 @@ public class DashboardServiceImp implements DashboardService {
                         .severity(alert.getSeverity().toString().toLowerCase())
                         .busId(alert.getBus() != null ? alert.getBus().getNumero() : "BUS-UNKNOWN")
                         .message(alert.getMessage())
-                        .timestamp(alert.getTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant())
+					.timestamp(alert.getTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant())
                         .status(alert.getStatus().toString().toLowerCase())
                         .build())
                 .collect(Collectors.toList());

@@ -3,5 +3,12 @@ package com.gestion.gestion_bus.repository;
 import com.gestion.gestion_bus.models.Payment;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface PaymentRepository extends JpaRepository<Payment,Long> {
+import java.util.List;
+import java.util.Optional;
+
+public interface PaymentRepository extends JpaRepository<Payment, Long> {
+
+    List<Payment> findAllByUserIdOrderByDatePaiementDesc(Long userId);
+
+    Optional<Payment> findByAbonnementId(Long abonnementId);
 }
