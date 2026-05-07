@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,7 +74,7 @@ public class AbonnementController {
             // 5. Mettre à jour le Payment lié
             paymentRepository.findByAbonnementId(id).ifPresent(p -> {
                 p.setStatut("PAYE");
-                p.setDatePaiement(LocalDate.now());
+                p.setDatePaiement(LocalDateTime.now());
                 paymentRepository.save(p);
             });
 

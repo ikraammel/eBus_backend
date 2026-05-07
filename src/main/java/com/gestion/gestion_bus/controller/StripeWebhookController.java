@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RestController
@@ -84,7 +85,7 @@ public class StripeWebhookController {
 
         paymentRepository.findByAbonnementId(aboId).ifPresent(p -> {
             p.setStatut("PAYE");
-            p.setDatePaiement(LocalDate.now());
+            p.setDatePaiement(LocalDateTime.now());
             paymentRepository.save(p);
             System.out.println("[Webhook] ✅ Payment → PAYE");
         });

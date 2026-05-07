@@ -3,9 +3,11 @@ package com.gestion.gestion_bus.service.imp;
 import com.gestion.gestion_bus.dto.ActivityDto;
 import com.gestion.gestion_bus.models.Abonnement;
 import com.gestion.gestion_bus.models.ObjetPerdu;
+import com.gestion.gestion_bus.models.Payment;
 import com.gestion.gestion_bus.models.Reclamation;
 import com.gestion.gestion_bus.repository.AbonnementRepository;
 import com.gestion.gestion_bus.repository.ObjetPerduRepository;
+import com.gestion.gestion_bus.repository.PaymentRepository;
 import com.gestion.gestion_bus.repository.ReclamationRepository;
 import com.gestion.gestion_bus.service.interfaces.ActivityService;
 import lombok.RequiredArgsConstructor;
@@ -17,16 +19,21 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 public class ActivityServiceImp implements ActivityService {
+
     private final ReclamationRepository reclamationRepository;
     private final ObjetPerduRepository objetPerduRepository;
     private final AbonnementRepository abonnementRepository;
+    private final PaymentRepository paymentRepository;
 
     @Override
     public List<ActivityDto> getRecentActivities(Long userId) {
+
         List<ActivityDto> activities = new ArrayList<>();
 
-        //réclamations
-        List<Reclamation> reclamations = reclamationRepository.findTop5ByUserIdOrderByDateDesc(userId);
+        // Réclamations
+        List<Reclamation> reclamations =
+                reclamationRepository.findTop5ByUserIdOrderByDateDesc(userId);
+
         reclamations.forEach(r -> {
             activities.add(new ActivityDto(
                     "Reclamation",
@@ -38,8 +45,10 @@ public class ActivityServiceImp implements ActivityService {
             ));
         });
 
-        //objets perdus
-        List<ObjetPerdu> objetPerdus = objetPerduRepository.findTop5ByUserIdOrderByDateDeclarationDesc(userId);
+        // Objets perdus
+        List<ObjetPerdu> objetPerdus =
+                objetPerduRepository.findTop5ByUserIdOrderByDateDeclarationDesc(userId);
+
         objetPerdus.forEach(o -> {
             activities.add(new ActivityDto(
                     "Objet Perdu",
@@ -51,7 +60,7 @@ public class ActivityServiceImp implements ActivityService {
             ));
         });
 
-        // abonnements
+        // Abonnements
         List<Abonnement> abonnements =
                 abonnementRepository.findTop5ByUserIdOrderByDateDebutDesc(userId);
 
@@ -66,13 +75,32 @@ public class ActivityServiceImp implements ActivityService {
             ));
         });
 
-        activities.sort((a,b) -> b.getDate().compareTo(a.getDate()));
+        // Paiements
+        List<Payment> payments =
+                paymentRepository.findTop5ByUserIdOrderByDatePaiementDesc(userId);
+
+        payments.forEach(p -> {
+            activities.add(new ActivityDto(
+                    "Payment",
+                    "Paiement abonnement confirmé",
+                    p.getDatePaiement(),
+                    p.getUser().getId(),
+                    p.getUser().getNom(),
+                    p.getUser().getPrenom()
+            ));
+        });
+
+        activities.sort((a, b) -> b.getDate().compareTo(a.getDate()));
+
         return activities;
     }
 
     @Override
     public List<ActivityDto> getRecentActivitiesAdmin() {
+
         List<ActivityDto> activities = new ArrayList<>();
+
+        // Réclamations
         reclamationRepository.findTop20ByOrderByDateDesc()
                 .forEach(r -> activities.add(
                         new ActivityDto(
@@ -84,19 +112,24 @@ public class ActivityServiceImp implements ActivityService {
                                 r.getUser().getPrenom()
                         )
                 ));
+
+        // Objets perdus
         objetPerduRepository.findTop20ByOrderByDateDeclarationDesc()
-                        .forEach(obj -> activities.add(
-                                new ActivityDto(
-                                        "Objet Perdu",
-                                        "Objet perdu envoyé",
-                                        obj.getDateDeclaration(),
-                                        obj.getUser().getId(),
-                                        obj.getUser().getNom(),
-                                        obj.getUser().getPrenom()
-                                )
-                        ));
+                .forEach(obj -> activities.add(
+                        new ActivityDto(
+                                "Objet Perdu",
+                                "Objet perdu envoyé",
+                                obj.getDateDeclaration(),
+                                obj.getUser().getId(),
+                                obj.getUser().getNom(),
+                                obj.getUser().getPrenom()
+                        )
+                ));
+
+        // Abonnements
         abonnementRepository.findTop20ByOrderByDateDebutDesc()
-                        .forEach(a -> activities.add(new ActivityDto(
+                .forEach(a -> activities.add(
+                        new ActivityDto(
                                 "Abonnement",
                                 "Abonnement " + a.getTypeAbonnement().getNom() + " " + a.getStatus(),
                                 a.getDateDebut(),
@@ -104,9 +137,25 @@ public class ActivityServiceImp implements ActivityService {
                                 a.getUser().getNom(),
                                 a.getUser().getPrenom()
                         )
-                        ));
+                ));
 
-        activities.sort((a,b) -> b.getDate().compareTo(a.getDate()));
+        // Paiements
+        List<Payment> payments =
+                paymentRepository.findTop20ByOrderByDatePaiementDesc();
+
+        payments.forEach(p -> {
+            activities.add(new ActivityDto(
+                    "Payment",
+                    "Paiement abonnement confirmé",
+                    p.getDatePaiement(),
+                    p.getUser().getId(),
+                    p.getUser().getNom(),
+                    p.getUser().getPrenom()
+            ));
+        });
+
+        activities.sort((a, b) -> b.getDate().compareTo(a.getDate()));
+
         return activities.stream().limit(50).toList();
     }
 }

@@ -77,11 +77,10 @@ public class AbonnementServiceImp implements AbonnementService {
 
         Abonnement saved = abonnementRepository.save(a);
 
-        // ── Création du Payment EN_ATTENTE lié ───────────────────────────────
         Payment payment = new Payment();
         payment.setMontant(type.getPrix());
         payment.setStatut("EN_ATTENTE");
-        payment.setDatePaiement(LocalDate.now());
+        payment.setDatePaiement(LocalDateTime.now());
         payment.setUser(user);
         payment.setAbonnement(saved);
         paymentRepository.save(payment);
