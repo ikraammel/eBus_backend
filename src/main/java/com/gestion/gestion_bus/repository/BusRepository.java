@@ -15,7 +15,7 @@ public interface BusRepository extends JpaRepository<Bus, Long> {
     Optional<Bus> findByImmatriculation(String immatriculation);
     List<Bus> findByEtat(BusEtat etat);
 
-    @Query("SELECT COUNT(b) FROM Bus b WHERE b.etat = 'ACTIF'")
+    @Query("SELECT COUNT(b) FROM Bus b WHERE b.etat = 'ACTIVE'")
     long countActiveBuses();
 
     boolean existsByImmatriculation(String immatriculation);

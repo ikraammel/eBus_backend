@@ -11,12 +11,13 @@ import com.gestion.gestion_bus.models.*;
 import com.gestion.gestion_bus.repository.*;
 import com.gestion.gestion_bus.service.interfaces.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +37,8 @@ public class UserServiceImp implements UserService {
     private final FileStorageService fileStorageService;
     private final TypeAbonnementRepository typeAbonnementRepository;
     private final DossierRepository dossierRepository;
+    private final PasswordResetTokenRepository tokenRepository;
+    private final EmailServiceImp emailService;
 
     @Override
     @Transactional
@@ -83,9 +86,15 @@ public class UserServiceImp implements UserService {
         user.setCin(cinClean);
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setCne(needsCne ? cne : null);
-        user.setPhotoUrl(fileStorageService.save(photo));
-        user.setCarteScolaireUrl(fileStorageService.save(carteScolaire));
-        user.setCinUrl(fileStorageService.save(cinPhoto));
+
+        if (photo != null && !photo.isEmpty())
+            user.setPhotoUrl(fileStorageService.save(photo));
+
+        if (carteScolaire != null && !carteScolaire.isEmpty())
+            user.setCarteScolaireUrl(fileStorageService.save(carteScolaire));
+
+        if (cinPhoto != null && !cinPhoto.isEmpty())
+            user.setCinUrl(fileStorageService.save(cinPhoto));
 
         User savedUser = userRepository.save(user);
         Dossier dossier = new Dossier();
@@ -98,8 +107,8 @@ public class UserServiceImp implements UserService {
         abonnement.setUser(savedUser);
         abonnement.setTypeAbonnement(type);
         abonnement.setPrix(type.getPrix());
-        abonnement.setDateDebut(LocalDate.now());
-        abonnement.setDateFin(LocalDate.now().plusMonths(type.getDureeMois()));
+        abonnement.setDateDebut(LocalDateTime.now());
+        abonnement.setDateFin(LocalDateTime.now().plusMonths(type.getDureeMois()));
         abonnement.setStatus(StatusAbonnement.EN_ATTENTE);
 
         abonnementRepository.save(abonnement);
@@ -143,8 +152,11 @@ public class UserServiceImp implements UserService {
         if (dto.getAbonnementId() == null)
             throw new RuntimeException("Type abonnement obligatoire");
 
-        if (photo == null || carteScolaire == null || cinPhoto == null)
+        if (photo == null || photo.isEmpty()
+                || carteScolaire == null || carteScolaire.isEmpty()
+                || cinPhoto == null || cinPhoto.isEmpty()) {
             throw new RuntimeException("Documents obligatoires");
+        }
     }
 
     private void verifyUnicity(UserRequestDto dto,String cinClean,String cne){
@@ -220,40 +232,60 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
+    @Transactional
     public void resetPassword(String token, String newPassword) {
-        ResetPasswordToken reset = passwordResetTokenRepository.findByToken(token)
-                .orElseThrow(() -> new RuntimeException("Token invalide"));
 
-        if (reset.getExpiryDate().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token expiré");
+        PasswordResetToken prt = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Code incorrect"));
+
+        if (prt.isUsed() || prt.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token expiré");
         }
 
-        User user = userRepository.findByEmail(reset.getEmail())
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
+        User user = userRepository.findById(prt.getUserId())
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
         user.setPassword(passwordEncoder.encode(newPassword));
-
-        passwordResetTokenRepository.delete(reset);
         userRepository.save(user);
+
+        prt.setUsed(true);
+        tokenRepository.save(prt);
     }
 
-    @Override
-    @Transactional
-    public String forgotPassword(String email) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Utilisateur non trouvé"));
 
-        passwordResetTokenRepository.deleteByEmail(email);
+    @Transactional
+    @Override
+    public void requestPasswordReset(String email) {
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Aucun compte associé à cet email"));
 
         String token = UUID.randomUUID().toString();
 
-        ResetPasswordToken reset = new ResetPasswordToken();
-        reset.setEmail(email);
-        reset.setToken(token);
-        reset.setExpiryDate(LocalDateTime.now().plusHours(1));
+        PasswordResetToken prt = new PasswordResetToken();
+        prt.setToken(token);
+        prt.setUserId(user.getId());
+        prt.setExpiresAt(LocalDateTime.now().plusMinutes(15));
+        prt.setUsed(false);
 
-        passwordResetTokenRepository.save(reset);
+        tokenRepository.save(prt);
 
-        return "myapp://reset-password?token=" + token;
+        emailService.sendEmail(
+                user.getEmail(),
+                "Reset Password",
+                "Votre code de réinitialisation : " + token
+        );
+
+//        log.info("Reset email sent to {}", email);
+    }
+
+    @Override
+    public void resetPasswordByEmail(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+
+        userRepository.save(user);
     }
 }

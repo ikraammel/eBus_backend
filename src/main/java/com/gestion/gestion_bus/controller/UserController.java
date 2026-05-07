@@ -3,8 +3,12 @@ package com.gestion.gestion_bus.controller;
 import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.request.UserUpdateDto;
+import com.gestion.gestion_bus.dto.response.ApiResponse;
 import com.gestion.gestion_bus.dto.response.DossierResponseDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
+import com.gestion.gestion_bus.models.User;
+import com.gestion.gestion_bus.repository.UserRepository;
+import com.gestion.gestion_bus.service.imp.EmailServiceImp;
 import com.gestion.gestion_bus.service.interfaces.DossierService;
 import com.gestion.gestion_bus.service.interfaces.UserService;
 import jakarta.validation.Valid;
@@ -16,7 +20,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
@@ -24,17 +31,24 @@ import java.util.List;
 public class UserController {
     private final UserService userService;
     private final DossierService dossierService;
+    private final EmailServiceImp emailService;
+    private final UserRepository userRepository;
+    private final Map<String, String> resetCodes = new HashMap<>();
+    private final Map<String, String> resetTokens = new HashMap<>();
 
     @PostMapping(value = "/register", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponseDto> register(
             @RequestPart("user") String userJson,
-            @RequestPart("photo") MultipartFile photo,
-            @RequestPart("carteScolaire") MultipartFile carteScolaire,
-            @RequestPart("cinPhoto") MultipartFile cinPhoto
+            @RequestPart(value = "photo", required = false) MultipartFile photo,
+            @RequestPart(value = "carteScolaire", required = false) MultipartFile carteScolaire,
+            @RequestPart(value = "cinPhoto", required = false) MultipartFile cinPhoto
     ) throws Exception {
 
         ObjectMapper mapper = new ObjectMapper();
         UserRequestDto dto = mapper.readValue(userJson, UserRequestDto.class);
+        System.out.println("photo = " + (photo != null));
+        System.out.println("carteScolaire = " + (carteScolaire != null));
+        System.out.println("cinPhoto = " + (cinPhoto != null));
 
         return ResponseEntity.ok(userService.registerUser(dto, photo, carteScolaire, cinPhoto));
     }
@@ -67,16 +81,80 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/verify-reset-code")
+    public ResponseEntity<ApiResponse<Map<String, String>>> verifyCode(
+            @RequestBody Map<String, String> body) {
+
+        String email = body.get("email");
+        String code = body.get("code");
+
+        String savedCode = resetCodes.get(email);
+
+        if (savedCode == null || !savedCode.equals(code)) {
+            return ResponseEntity
+                    .status(400)
+                    .body(ApiResponse.error("Code invalide"));
+        }
+
+        String token = UUID.randomUUID().toString();
+        resetTokens.put(token, email);
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(Map.of("token", token),
+                        "Code vérifié")
+        );
+    }
+
     @PostMapping("/forgot-password")
-    public ResponseEntity<String> forgotPassword(@RequestParam String email){
-        String resetLink = userService.forgotPassword(email);
-        return ResponseEntity.ok("Lien de réinitialisation généré : " + resetLink);
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+            @RequestBody Map<String, String> body) {
+
+        String email = body.get("email");
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Aucun compte"));
+
+        String code = String.valueOf((int)(Math.random() * 900000) + 100000);
+
+        resetCodes.put(email, code);
+
+        emailService.sendEmail(
+                email,
+                "Code de réinitialisation",
+                "Votre code est : " + code
+        );
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(null, "Code envoyé")
+        );
     }
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestParam String token,@RequestParam String newPassword){
-        userService.resetPassword(token,newPassword);
-        return ResponseEntity.ok("Mot de passe rénitialisé avec succès!");
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @RequestBody Map<String, String> body) {
+
+        String token = body.get("token");
+        String newPassword = body.get("newPassword");
+
+        if (token == null || newPassword == null) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Token ou mot de passe manquant"));
+        }
+
+        String email = resetTokens.get(token);
+
+        if (email == null) {
+            return ResponseEntity.status(400)
+                    .body(ApiResponse.error("Token invalide"));
+        }
+
+        userService.resetPasswordByEmail(email, newPassword);
+
+        resetTokens.remove(token); // usage unique
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(null, "Mot de passe réinitialisé avec succès")
+        );
     }
 
     @GetMapping("/me/dossier")

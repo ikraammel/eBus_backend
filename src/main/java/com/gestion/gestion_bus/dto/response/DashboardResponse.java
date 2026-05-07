@@ -16,6 +16,10 @@ import java.util.List;
 public class DashboardResponse {
     private Instant timestamp;
     private int refreshInterval;
+    private long users;
+    private long bus;
+    private long reclamations;
+    private long objets;
     private KPIsDTO kpis;
     private RealtimeOccupancyDTO realtimeOccupancy;
     private List<AlertDTO> alerts;

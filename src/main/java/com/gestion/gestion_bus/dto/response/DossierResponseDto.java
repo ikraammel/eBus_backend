@@ -3,6 +3,7 @@ package com.gestion.gestion_bus.dto.response;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 public class DossierResponseDto {
@@ -27,8 +28,9 @@ public class DossierResponseDto {
     private int dureeMois;
 
     private String statusDossier;
+    private String rejectionReason;
 
-    private LocalDate dateDebutAbonnement;
-    private LocalDate dateFinAbonnement;
+    private LocalDateTime dateDebutAbonnement;
+    private LocalDateTime dateFinAbonnement;
     private String statusAbonnement;
 }

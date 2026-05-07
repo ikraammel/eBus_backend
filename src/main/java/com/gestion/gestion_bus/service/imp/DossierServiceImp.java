@@ -97,10 +97,12 @@ public class DossierServiceImp implements DossierService {
     }
 
     @Override
-    public void rejeterDossier(Long id) {
+    public void rejeterDossier(Long id,String reason) {
         Dossier dossier = dossierRepository.findById(id).orElseThrow();
         dossier.setStatus(StatusDossier.REJETE);
+        dossier.setRejectionReason(reason);
         dossier.setUpdatedAt(LocalDateTime.now());
+        System.out.println("REASON = " + reason);
         dossierRepository.save(dossier);
     }
 }

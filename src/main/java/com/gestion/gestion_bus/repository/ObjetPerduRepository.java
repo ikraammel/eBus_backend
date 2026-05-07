@@ -20,4 +20,8 @@ public interface ObjetPerduRepository extends JpaRepository<ObjetPerdu, Long> {
 	List<ObjetPerdu> findByType(TypeAnnonce type);
 
 	List<ObjetPerdu> findByStatutAndType(StatutObjet statut, TypeAnnonce type);
+
+    List<ObjetPerdu> findTop5ByUserIdOrderByDateDeclarationDesc(Long userId);
+
+	List<ObjetPerdu> findTop20ByOrderByDateDeclarationDesc();
 }

@@ -20,4 +20,8 @@ public interface AbonnementRepository extends JpaRepository<Abonnement, Long> {
 
 
     Optional<Abonnement> findByUserId(Long userId);
+
+    List<Abonnement> findTop5ByUserIdOrderByDateDebutDesc(Long userId);
+
+    List<Abonnement> findTop20ByOrderByDateDebutDesc();
 }

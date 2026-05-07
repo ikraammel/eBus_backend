@@ -15,7 +15,7 @@ import com.gestion.gestion_bus.service.interfaces.AbonnementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -30,14 +30,16 @@ public class AbonnementServiceImp implements AbonnementService {
     private final TypeAbonnementRepository typeAbonnementRepository;
     private final StripeService stripeService;
 
-    /** Calcule le statut effectif : si dateFin est passée on retourne EXPIRE dans le DTO */
+
     public AbonnementDto mapWithEffectiveStatus(Abonnement a) {
+
         AbonnementDto dto = AbonnementMapper.mapToDto(a);
-        if (a.getStatus() == StatusAbonnement.ACTIF
-                && a.getDateFin() != null
-                && a.getDateFin().isBefore(LocalDate.now())) {
-            dto.setStatus(StatusAbonnement.EXPIRE);
-        }
+		if (a.getStatus() == StatusAbonnement.ACTIF
+			&& a.getDateFin() != null
+			&& a.getDateFin().toLocalDate().isBefore(LocalDate.now())) {
+			dto.setStatus(StatusAbonnement.EXPIRE);
+		}
+
         return dto;
     }
 
@@ -52,23 +54,9 @@ public class AbonnementServiceImp implements AbonnementService {
             .orElseThrow(() -> new RuntimeException("Type d'abonnement introuvable"));
 
         if (!type.isActif())
-            throw new RuntimeException("Ce type d'abonnement est désactivé");
+            throw new RuntimeException("Type abonnement désactivé");
 
-        // ── RÈGLE : un seul abonnement ACTIF à la fois ───────────────────────
-        Optional<Abonnement> existingActif = abonnementRepository
-            .findTopByUserIdAndStatusOrderByIdDesc(userId, StatusAbonnement.ACTIF);
-        if (existingActif.isPresent()) {
-            Abonnement a = existingActif.get();
-            // S'il n'est pas encore expiré, on refuse
-            if (a.getDateFin() != null && !a.getDateFin().isBefore(LocalDate.now())) {
-                throw new RuntimeException("Vous avez déjà un abonnement actif jusqu'au " + a.getDateFin());
-            }
-            // Sinon on le marque EXPIRE en base
-            a.setStatus(StatusAbonnement.EXPIRE);
-            abonnementRepository.save(a);
-        }
 
-        // Annuler les éventuels abonnements EN_ATTENTE antérieurs
         Optional<Abonnement> existingPending = abonnementRepository
             .findTopByUserIdAndStatusOrderByIdDesc(userId, StatusAbonnement.EN_ATTENTE);
         existingPending.ifPresent(a -> {
@@ -76,14 +64,17 @@ public class AbonnementServiceImp implements AbonnementService {
             abonnementRepository.save(a);
         });
 
-        // ── Création du nouvel abonnement EN_ATTENTE ─────────────────────────
-        Abonnement a = new Abonnement();
-        a.setUser(user);
-        a.setTypeAbonnement(type);
-        a.setPrix(type.getPrix());
-        a.setDateDebut(LocalDate.now());
-        a.setDateFin(LocalDate.now().plusMonths(type.getDureeMois()));
+
+		Abonnement a = new Abonnement();
+		a.setUser(user);
+		a.setTypeAbonnement(type);
+		a.setPrix(type.getPrix());
+
+// Utilisation de LocalDateTime au lieu de LocalDate
+		a.setDateDebut(LocalDateTime.now());
+		a.setDateFin(LocalDateTime.now().plusMonths(type.getDureeMois()));
         a.setStatus(StatusAbonnement.EN_ATTENTE);
+
         Abonnement saved = abonnementRepository.save(a);
 
         // ── Création du Payment EN_ATTENTE lié ───────────────────────────────
@@ -95,7 +86,7 @@ public class AbonnementServiceImp implements AbonnementService {
         payment.setAbonnement(saved);
         paymentRepository.save(payment);
 
-        // ── Génération de la session Stripe ──────────────────────────────────
+
         return stripeService.createCheckoutSession(
             type.getStripePriceId(),
             saved.getId(),
@@ -106,9 +97,12 @@ public class AbonnementServiceImp implements AbonnementService {
     @Override
     @Transactional
     public AbonnementDto updateStatus(Long id, StatusAbonnement status) {
+
         Abonnement a = abonnementRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Abonnement introuvable"));
+                .orElseThrow(() -> new RuntimeException("Abonnement not found"));
+
         a.setStatus(status);
+
         abonnementRepository.save(a);
 
         // Mettre à jour aussi le Payment lié

@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Data
@@ -23,8 +24,8 @@ public class Abonnement {
 	private String stripeSubscriptionId;
 
     private double prix;
-    private LocalDate dateDebut;
-    private LocalDate dateFin;
+    private LocalDateTime dateDebut;
+    private LocalDateTime dateFin;
     @Enumerated(EnumType.STRING)
     private StatusAbonnement status;
     @ManyToOne
