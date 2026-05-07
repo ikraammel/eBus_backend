@@ -20,6 +20,7 @@ public class Abonnement {
 
     @ManyToOne
     private TypeAbonnement typeAbonnement;
+	private String stripeSubscriptionId;
 
     private double prix;
     private LocalDate dateDebut;

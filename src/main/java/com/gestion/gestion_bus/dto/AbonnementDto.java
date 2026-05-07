@@ -13,6 +13,7 @@ public class AbonnementDto {
     private LocalDate dateDebut;
     private LocalDate dateFin;
     private StatusAbonnement status;
+	private String stripeSubscriptionId;
 
     private Long userId;
     private String nom;

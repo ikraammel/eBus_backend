@@ -136,7 +136,7 @@ public class DashboardServiceImp implements DashboardService {
                         .severity(alert.getSeverity().toString().toLowerCase())
                         .busId(alert.getBus() != null ? alert.getBus().getNumero() : "BUS-UNKNOWN")
                         .message(alert.getMessage())
-                        .timestamp(alert.getTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant())
+					.timestamp(alert.getTimestamp().atZone(java.time.ZoneId.systemDefault()).toInstant())
                         .status(alert.getStatus().toString().toLowerCase())
                         .build())
                 .collect(Collectors.toList());

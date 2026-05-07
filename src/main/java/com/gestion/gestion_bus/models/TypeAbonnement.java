@@ -13,6 +13,7 @@ public class TypeAbonnement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+	private String stripePriceId;
 
     private String nom;
 

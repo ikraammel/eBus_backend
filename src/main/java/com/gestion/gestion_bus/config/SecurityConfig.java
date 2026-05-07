@@ -34,6 +34,7 @@ public class SecurityConfig {
 					    .requestMatchers("/types-abonnement/**").permitAll()
 					    .requestMatchers("/admin/**").permitAll()
 					    .requestMatchers("/admin/dossiers/**").permitAll()
+					    .requestMatchers("/stripe/webhook").permitAll()
                         .anyRequest().authenticated()
                 );
 

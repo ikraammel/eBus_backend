@@ -32,6 +32,7 @@ public class TypeAbonnementServiceImp implements TypeAbonnementService {
         existing.setNom(t.getNom());
         existing.setPrix(t.getPrix());
         existing.setDureeMois(t.getDureeMois());
+		existing.setStripePriceId(t.getStripePriceId());
 
         return typeAbonnementRepository.save(existing);
     }
