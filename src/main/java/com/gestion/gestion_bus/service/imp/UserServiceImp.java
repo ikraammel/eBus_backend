@@ -288,4 +288,33 @@ public class UserServiceImp implements UserService {
 
         userRepository.save(user);
     }
+
+    @Override
+    @Transactional
+    public UserResponseDto updateAvatar(Long id, MultipartFile photo) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        if (photo == null || photo.isEmpty()) {
+            throw new RuntimeException("Aucune photo fournie");
+        }
+
+        String photoUrl = fileStorageService.save(photo);
+        user.setPhotoUrl(photoUrl);
+        userRepository.save(user);
+
+        return userMapper.toDto(user);
+    }
+
+    @Override
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())){
+            throw new RuntimeException("Ancien mot de passe incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
 }

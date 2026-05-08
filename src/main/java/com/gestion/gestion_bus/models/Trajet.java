@@ -21,7 +21,9 @@ public class Trajet {
     @JoinColumn(name = "bus_id")
     private Bus bus;
 
-    private String ligne;
+    @ManyToOne
+    @JoinColumn(name = "ligne_id")
+    private Ligne ligne;
     private LocalDateTime departureTime;
     private LocalDateTime arrivalTime;
     private int passengersCount;

@@ -22,4 +22,7 @@ public interface UserService {
     void requestPasswordReset(String email);
 
     void resetPasswordByEmail(String email, String newPassword);
+    UserResponseDto updateAvatar(Long id, MultipartFile photo);
+
+    void changePassword(Long userId, String oldPassword, String newPassword);
 }

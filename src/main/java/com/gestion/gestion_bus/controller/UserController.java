@@ -1,5 +1,6 @@
 package com.gestion.gestion_bus.controller;
 
+import com.gestion.gestion_bus.dto.ChangePasswordDto;
 import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.request.UserUpdateDto;
@@ -161,4 +162,22 @@ public class UserController {
     public DossierResponseDto getMyDossier(@RequestParam Long id) {
         return dossierService.getMyDossier(id);
     }
+
+    @PatchMapping(value = "/update-avatar/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponseDto> updateAvatar(
+            @PathVariable Long id,
+            @RequestPart(value = "photo") MultipartFile photo) {
+
+        return ResponseEntity.ok(userService.updateAvatar(id, photo));
+    }
+
+    @PatchMapping("/change-password")
+    public ResponseEntity<ApiResponse<Void>> changePassword(
+            @RequestBody ChangePasswordDto dto
+    ){
+        userService.changePassword(dto.userId,dto.oldPassword,dto.newPassword);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Mot de passe modifié avec succès"));
+    }
+
+
 }
