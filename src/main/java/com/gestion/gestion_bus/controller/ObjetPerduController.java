@@ -36,7 +36,7 @@ public class ObjetPerduController {
 		return ResponseEntity.ok(objetPerduService.updateStatut(id, statutEnum));
 	}
 
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN','USER')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		objetPerduService.delete(id);

@@ -49,7 +49,7 @@ public class ReclamationController {
         return ResponseEntity.ok(reclamationService.updateReclamation(id,reclamationDto));
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','USER')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ReclamationDto> deleteReclamation(@PathVariable Long id){
         reclamationService.deleteReclamation(id);

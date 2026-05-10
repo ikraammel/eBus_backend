@@ -48,25 +48,9 @@ public class SecurityConfig {
 							"/reclamations/status/**",
 							"/reclamations/{id}"
 						).permitAll()
-//                        .requestMatchers("/users/login","/users/register","/users").permitAll()
-//                        .requestMatchers("/users/**").permitAll()
-//                        .requestMatchers("/lignes/**").permitAll()
-//                        .requestMatchers("/uploads/**").permitAll()
-//                        .requestMatchers("/bus/**").permitAll()
-//                        .requestMatchers("/reclamations/**").permitAll()
-//					    .requestMatchers("/api/objets/**").permitAll()
-//					    .requestMatchers("/role/**").permitAll()
-//					    .requestMatchers("/tickets/**").permitAll()
-//					    .requestMatchers("/abonnements/**").permitAll()
-//					    .requestMatchers("/types-abonnement/**").permitAll()
-//					    .requestMatchers("/admin/**").permitAll()
-//					    .requestMatchers("/activities/**").permitAll()
-//					    .requestMatchers("/admin/dossiers/**").permitAll()
-//					    .requestMatchers("/stripe/webhook").permitAll()
 						.requestMatchers(
 							"/admin/**",
-							"/role/**",
-							"/activities/**"
+							"/role/**"
 						).hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
