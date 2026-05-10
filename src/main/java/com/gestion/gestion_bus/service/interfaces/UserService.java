@@ -1,7 +1,5 @@
 package com.gestion.gestion_bus.service.interfaces;
 
-import com.gestion.gestion_bus.dto.request.UserRequestDto;
-import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserUpdateDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,8 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 public interface UserService {
-    UserResponseDto registerUser(UserRequestDto user,MultipartFile photo,MultipartFile carteScolaire,MultipartFile cin);
-    UserResponseDto login(LoginRequestDto login);
     UserResponseDto getUserById(Long id);
     List<UserResponseDto> getAllUsers();
     UserResponseDto updateUser(Long id, UserUpdateDto userUpdateDto);

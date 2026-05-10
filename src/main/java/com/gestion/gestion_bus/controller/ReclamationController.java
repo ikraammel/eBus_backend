@@ -5,6 +5,7 @@ import com.gestion.gestion_bus.enums.ReclamationStatus;
 import com.gestion.gestion_bus.service.interfaces.ReclamationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
@@ -36,16 +37,19 @@ public class ReclamationController {
         return ResponseEntity.ok(reclamationService.getReclamationById(id));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PostMapping("/new")
     public ResponseEntity<ReclamationDto> createReclamation(@RequestBody ReclamationDto reclamationDto){
         return ResponseEntity.ok(reclamationService.createReclamation(reclamationDto));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN', 'USER')")
     @PatchMapping("/{id}")
     public ResponseEntity<ReclamationDto> updateReclamation(@PathVariable Long id,@RequestBody ReclamationDto reclamationDto){
         return ResponseEntity.ok(reclamationService.updateReclamation(id,reclamationDto));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<ReclamationDto> deleteReclamation(@PathVariable Long id){
         reclamationService.deleteReclamation(id);

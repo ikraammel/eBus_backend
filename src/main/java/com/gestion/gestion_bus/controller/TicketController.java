@@ -4,6 +4,7 @@ import com.gestion.gestion_bus.dto.CreateTicketDto;
 import com.gestion.gestion_bus.dto.TicketDto;
 import com.gestion.gestion_bus.service.interfaces.TicketService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,17 +26,20 @@ public class TicketController {
         return ticketService.getTicketById(id);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public TicketDto createTicket(@RequestBody CreateTicketDto dto) {
         return ticketService.createTicket(dto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public TicketDto updateTicket(@PathVariable Long id,
                                   @RequestBody CreateTicketDto dto) {
         return ticketService.updateTicket(id, dto);
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public void deleteTicket(@PathVariable Long id) {
         ticketService.deleteTicket(id);

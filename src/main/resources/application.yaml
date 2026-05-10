@@ -39,3 +39,6 @@ stripe:
 
 app:
     frontend-url: http://localhost:61624
+
+jwt:
+    secret: ${JWT_SECRET}

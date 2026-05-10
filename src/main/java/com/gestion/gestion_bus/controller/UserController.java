@@ -5,17 +5,20 @@ import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.request.UserUpdateDto;
 import com.gestion.gestion_bus.dto.response.ApiResponse;
+import com.gestion.gestion_bus.dto.response.AuthenticationResponse;
 import com.gestion.gestion_bus.dto.response.DossierResponseDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
 import com.gestion.gestion_bus.models.User;
 import com.gestion.gestion_bus.repository.UserRepository;
 import com.gestion.gestion_bus.service.imp.EmailServiceImp;
+import com.gestion.gestion_bus.service.interfaces.AuthService;
 import com.gestion.gestion_bus.service.interfaces.DossierService;
 import com.gestion.gestion_bus.service.interfaces.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +34,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final AuthService authService;
     private final DossierService dossierService;
     private final EmailServiceImp emailService;
     private final UserRepository userRepository;
@@ -51,7 +55,7 @@ public class UserController {
         System.out.println("carteScolaire = " + (carteScolaire != null));
         System.out.println("cinPhoto = " + (cinPhoto != null));
 
-        return ResponseEntity.ok(userService.registerUser(dto, photo, carteScolaire, cinPhoto));
+        return ResponseEntity.ok(authService.registerUser(dto, photo, carteScolaire, cinPhoto));
     }
 
     @PatchMapping("/update/{id}")
@@ -62,20 +66,23 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<UserResponseDto> login(@RequestBody LoginRequestDto dto){
-        return ResponseEntity.ok(userService.login(dto));
+    public ResponseEntity<AuthenticationResponse> login(@RequestBody LoginRequestDto dto){
+        return ResponseEntity.ok(authService.login(dto));
     }
 
+    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/{id}")
     public ResponseEntity<UserResponseDto> getUserById(@PathVariable Long id){
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<List<UserResponseDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
+    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
         userService.deleteUser(id);
@@ -158,11 +165,13 @@ public class UserController {
         );
     }
 
+    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
     @GetMapping("/me/dossier")
     public DossierResponseDto getMyDossier(@RequestParam Long id) {
         return dossierService.getMyDossier(id);
     }
 
+    @PreAuthorize("#id == authentication.principal.id or hasRole('ADMIN')")
     @PatchMapping(value = "/update-avatar/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponseDto> updateAvatar(
             @PathVariable Long id,

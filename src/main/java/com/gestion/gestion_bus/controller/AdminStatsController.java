@@ -6,12 +6,12 @@ import com.gestion.gestion_bus.enums.StatusAbonnement;
 import com.gestion.gestion_bus.enums.StatusDossier;
 import com.gestion.gestion_bus.repository.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.format.TextStyle;
 import java.util.*;
 
@@ -29,6 +29,7 @@ public class AdminStatsController {
     private final BusRepository busRepository;
     private final LigneRepository ligneRepository;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/stats")
     public AdminStatsDto getStats() {
 

@@ -4,10 +4,10 @@ import com.gestion.gestion_bus.dto.request.ObjetPerduRequestDto;
 import com.gestion.gestion_bus.dto.response.ObjetPerduResponseDto;
 import com.gestion.gestion_bus.enums.StatutObjet;
 import com.gestion.gestion_bus.service.interfaces.ObjetPerduService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,10 +22,11 @@ public class ObjetPerduController {
 
 
 	@GetMapping("/admin/all")
-	public ResponseEntity<List<ObjetPerduResponseDto>> getAllAdmin() {
+	public ResponseEntity<List<ObjetPerduResponseDto>> getAll() {
 		return ResponseEntity.ok(objetPerduService.getAll());
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/{id}/statut")
 	public ResponseEntity<ObjetPerduResponseDto> updateStatut(
 		@PathVariable Long id,
@@ -35,12 +36,14 @@ public class ObjetPerduController {
 		return ResponseEntity.ok(objetPerduService.updateStatut(id, statutEnum));
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{id}")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 		objetPerduService.delete(id);
 		return ResponseEntity.noContent().build();
 	}
 
+	@PreAuthorize("hasRole('USER')")
 	@PostMapping(value = "/declaration", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public ResponseEntity<ObjetPerduResponseDto> declare(
 			@ModelAttribute ObjetPerduRequestDto dto,
@@ -54,6 +57,7 @@ public class ObjetPerduController {
 		return ResponseEntity.ok(objetPerduService.getById(id));
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping("/{id}/signaler-recupere")
 	public ResponseEntity<ObjetPerduResponseDto> signalerRecupere(@PathVariable Long id) {
 		return ResponseEntity.ok(objetPerduService.signalerRecupere(id));
