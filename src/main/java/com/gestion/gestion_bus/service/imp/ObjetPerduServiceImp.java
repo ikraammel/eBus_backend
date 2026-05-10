@@ -11,6 +11,7 @@ import com.gestion.gestion_bus.repository.LigneRepository;
 import com.gestion.gestion_bus.repository.ObjetPerduRepository;
 import com.gestion.gestion_bus.repository.UserRepository;
 import com.gestion.gestion_bus.service.interfaces.ObjetPerduService;
+import com.gestion.gestion_bus.service.imp.FileStorageService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,11 +20,6 @@ import com.gestion.gestion_bus.mappers.ObjetPerduMapper;
 import com.gestion.gestion_bus.dto.request.ObjetPerduRequestDto;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +34,7 @@ public class ObjetPerduServiceImp implements ObjetPerduService {
 	private final LigneRepository ligneRepository;
 	private final BusRepository busRepository;
 	private final ObjetPerduMapper objetPerduMapper;
+	private final FileStorageService fileStorageService;
 
 	@Override
 	@Transactional(readOnly = true)
@@ -84,29 +81,9 @@ public class ObjetPerduServiceImp implements ObjetPerduService {
 			objet.setBus(bus);
 		}
 
-		System.out.println("IMAGE NULL ? " + (image == null));
-		if (image != null) {
-			System.out.println("IMAGE NAME = " + image.getOriginalFilename());
-			System.out.println("IMAGE SIZE = " + image.getSize());
-		}
-
 		if (image != null && !image.isEmpty()) {
-			String fileName = System.currentTimeMillis() + "_" + image.getOriginalFilename();
-			String uploadDir = "uploads/";
-
-			try {
-				File dir = new File(uploadDir);
-				if (!dir.exists()) dir.mkdirs();
-
-				Path path = Paths.get(uploadDir + fileName);
-				Files.write(path, image.getBytes());
-
-				String imageUrl = "/uploads/" + fileName; // ou URL complète
-				objet.setImageUrl(imageUrl);
-
-			} catch (IOException e) {
-				throw new RuntimeException("Erreur upload image", e);
-			}
+			String imageUrl = fileStorageService.save(image);
+			objet.setImageUrl(imageUrl);
 		}
 
 		ObjetPerdu saved = objetPerduRepository.save(objet);
