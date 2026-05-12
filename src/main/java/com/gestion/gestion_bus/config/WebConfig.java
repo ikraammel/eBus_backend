@@ -14,9 +14,11 @@ public class WebConfig implements WebMvcConfigurer {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                registry.addMapping("/**") // toutes les routes
-                        .allowedOriginPatterns("*") // ton frontend Flutter
-                        .allowedMethods("GET", "POST", "PUT", "DELETE")
+                registry.addMapping("/**")
+                        .allowedOriginPatterns("*")
+                        // ✅ PATCH + OPTIONS ajoutés — nécessaire pour updateUser et resubmitDossier
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
+                        .allowedHeaders("*")
                         .allowCredentials(false);
             }
         };
@@ -24,11 +26,9 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // Fichiers publics : accessibles sans authentification
         registry.addResourceHandler("/uploads/public/**")
                 .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/public/");
 
-        // Fichiers privés : Spring Security bloquera les non-admins (voir SecurityConfig)
         registry.addResourceHandler("/uploads/private/**")
                 .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/private/");
     }
