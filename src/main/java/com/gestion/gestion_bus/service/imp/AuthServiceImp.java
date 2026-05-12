@@ -101,7 +101,7 @@ public class AuthServiceImp implements AuthService {
         user.setCne(needsCne ? cne : null);
 
         if (photo != null && !photo.isEmpty())
-            user.setPhotoUrl(fileStorageService.savePrivate(photo));
+            user.setPhotoUrl(fileStorageService.savePublic(photo));
 
         if (carteScolaire != null && !carteScolaire.isEmpty())
             user.setCarteScolaireUrl(fileStorageService.savePrivate(carteScolaire));

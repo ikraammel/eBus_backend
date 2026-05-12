@@ -150,7 +150,7 @@ public class UserServiceImp implements UserService {
             throw new RuntimeException("Aucune photo fournie");
         }
 
-        String photoUrl = fileStorageService.savePrivate(photo);
+        String photoUrl = fileStorageService.savePublic(photo);
         user.setPhotoUrl(photoUrl);
         userRepository.save(user);
 

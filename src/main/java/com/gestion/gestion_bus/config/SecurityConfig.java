@@ -52,10 +52,9 @@ public class SecurityConfig {
 						"/admin/**",
 						"/role/**"
 					).hasRole("ADMIN")
-						.requestMatchers("/uploads/private/**").hasRole("ADMIN")
-						.requestMatchers("/admin/**", "/role/**").hasRole("ADMIN")
+						.requestMatchers("/uploads/private/**").authenticated()
 						.requestMatchers("/cards/**").authenticated()
-                    .anyRequest().authenticated()
+						.anyRequest().authenticated()
                 )
 
 				.sessionManagement(session ->

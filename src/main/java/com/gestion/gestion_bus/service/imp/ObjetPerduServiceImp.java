@@ -82,7 +82,7 @@ public class ObjetPerduServiceImp implements ObjetPerduService {
 		}
 
 		if (image != null && !image.isEmpty()) {
-			String imageUrl = fileStorageService.save(image);
+			String imageUrl = fileStorageService.savePublic(image);
 			objet.setImageUrl(imageUrl);
 		}
 
