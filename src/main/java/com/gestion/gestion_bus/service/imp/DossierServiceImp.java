@@ -87,8 +87,9 @@ public class DossierServiceImp implements DossierService {
                 .orElseThrow(() -> new RuntimeException("Dossier introuvable"));
         dossier.setStatus(StatusDossier.VALIDE);
         dossier.setUpdatedAt(LocalDateTime.now());
-        Abonnement abo = abonnementRepository.findByUserId(dossier.getUser().getId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Abonnement abo = abonnementRepository
+                .findByUserId(dossier.getUser().getId())
+                .orElse(null);
 
         if (abo != null) {
             abo.setStatus(StatusAbonnement.ACTIF);
