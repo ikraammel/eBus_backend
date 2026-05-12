@@ -189,4 +189,13 @@ public class UserController {
     }
 
 
+    @PatchMapping(value = "/resubmit-dossier/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponseDto> resubmitDossier(
+            @PathVariable Long userId,
+            @RequestPart(value = "cinPhoto", required = false) MultipartFile cinPhoto,
+            @RequestPart(value = "carteScolaire", required = false) MultipartFile carteScolaire
+    ) {
+        return ResponseEntity.ok(userService.resubmitDossier(userId, cinPhoto, carteScolaire));
+    }
+
 }
