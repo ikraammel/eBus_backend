@@ -3,12 +3,17 @@ package com.gestion.gestion_bus.mappers;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
 import com.gestion.gestion_bus.models.Abonnement;
 import com.gestion.gestion_bus.models.User;
+import com.gestion.gestion_bus.repository.DossierRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 
+@RequiredArgsConstructor
 @Component
 public class UserMapper {
+    private final DossierRepository dossierRepository;
+
     public UserResponseDto toDto(User user){
         UserResponseDto dto = new UserResponseDto();
         dto.setId(user.getId());
@@ -46,6 +51,10 @@ public class UserMapper {
             dto.setStatutAbonnement(null);
         }
 
+        dossierRepository.findByUserId(user.getId()).ifPresent(dossier -> {
+            dto.setStatusDossier(dossier.getStatus().name());
+            dto.setRejectionReason(dossier.getRejectionReason());
+        });
         return dto;
     }
 }

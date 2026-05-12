@@ -46,7 +46,7 @@ public class DossierMapper {
 
             dto.setDateDebutAbonnement(abonnement.getDateDebut());
             dto.setDateFinAbonnement(abonnement.getDateFin());
-            dto.setRejectionReason(dossier.getRejectionReason());
+
 
             dto.setStatusAbonnement(
                     abonnement.getDateFin().isBefore(LocalDateTime.now())
@@ -55,6 +55,8 @@ public class DossierMapper {
             );
         }
 
+        // Toujours inclure rejectionReason quelle que soit la condition abonnement
+        dto.setRejectionReason(dossier.getRejectionReason());
         dto.setStatusDossier(dossier.getStatus().name());
 
         return dto;

@@ -1,9 +1,7 @@
 package com.gestion.gestion_bus.service.imp;
 
-import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.request.UserUpdateDto;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
-import com.gestion.gestion_bus.enums.StatusAbonnement;
 import com.gestion.gestion_bus.enums.StatusDossier;
 import com.gestion.gestion_bus.mappers.UserMapper;
 import com.gestion.gestion_bus.models.*;
@@ -152,7 +150,7 @@ public class UserServiceImp implements UserService {
             throw new RuntimeException("Aucune photo fournie");
         }
 
-        String photoUrl = fileStorageService.save(photo);
+        String photoUrl = fileStorageService.savePrivate(photo);
         user.setPhotoUrl(photoUrl);
         userRepository.save(user);
 
@@ -178,13 +176,13 @@ public class UserServiceImp implements UserService {
 
         // Mettre à jour la photo CIN si fournie
         if (newCinFile != null && !newCinFile.isEmpty()) {
-            String cinUrl = fileStorageService.save(newCinFile);
+            String cinUrl = fileStorageService.savePrivate(newCinFile);
             user.setCinUrl(cinUrl);
         }
 
         // Mettre à jour la carte scolaire si fournie
         if (newCarteScolaireFile != null && !newCarteScolaireFile.isEmpty()) {
-            String carteScolaireUrl = fileStorageService.save(newCarteScolaireFile);
+            String carteScolaireUrl = fileStorageService.savePrivate(newCarteScolaireFile);
             user.setCarteScolaireUrl(carteScolaireUrl);
         }
 

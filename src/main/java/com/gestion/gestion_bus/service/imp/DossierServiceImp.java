@@ -83,7 +83,8 @@ public class DossierServiceImp implements DossierService {
 
     @Override
     public void validerDossier(Long id) {
-        Dossier dossier = dossierRepository.findById(id).orElseThrow();
+        Dossier dossier = dossierRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Dossier introuvable"));
         dossier.setStatus(StatusDossier.VALIDE);
         dossier.setUpdatedAt(LocalDateTime.now());
         Abonnement abo = abonnementRepository.findByUserId(dossier.getUser().getId())
@@ -98,7 +99,8 @@ public class DossierServiceImp implements DossierService {
 
     @Override
     public void rejeterDossier(Long id,String reason) {
-        Dossier dossier = dossierRepository.findById(id).orElseThrow();
+        Dossier dossier = dossierRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Dossier introuvable"));
         dossier.setStatus(StatusDossier.REJETE);
         dossier.setRejectionReason(reason);
         dossier.setUpdatedAt(LocalDateTime.now());

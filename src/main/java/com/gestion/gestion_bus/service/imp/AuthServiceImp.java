@@ -101,13 +101,13 @@ public class AuthServiceImp implements AuthService {
         user.setCne(needsCne ? cne : null);
 
         if (photo != null && !photo.isEmpty())
-            user.setPhotoUrl(fileStorageService.save(photo));
+            user.setPhotoUrl(fileStorageService.savePrivate(photo));
 
         if (carteScolaire != null && !carteScolaire.isEmpty())
-            user.setCarteScolaireUrl(fileStorageService.save(carteScolaire));
+            user.setCarteScolaireUrl(fileStorageService.savePrivate(carteScolaire));
 
         if (cinPhoto != null && !cinPhoto.isEmpty())
-            user.setCinUrl(fileStorageService.save(cinPhoto));
+            user.setCinUrl(fileStorageService.savePrivate(cinPhoto));
 
         User savedUser = userRepository.save(user);
         Dossier dossier = new Dossier();

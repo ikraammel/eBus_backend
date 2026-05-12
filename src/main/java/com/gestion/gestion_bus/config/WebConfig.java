@@ -24,8 +24,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/");
+        // Fichiers publics : accessibles sans authentification
+        registry.addResourceHandler("/uploads/public/**")
+                .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/public/");
 
+        // Fichiers privés : Spring Security bloquera les non-admins (voir SecurityConfig)
+        registry.addResourceHandler("/uploads/private/**")
+                .addResourceLocations("file:" + System.getProperty("user.dir") + "/uploads/private/");
     }
 }

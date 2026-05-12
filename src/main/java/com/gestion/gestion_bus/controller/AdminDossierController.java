@@ -37,14 +37,16 @@ public class AdminDossierController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/valider")
-    public void valider(@PathVariable Long id) {
+    public DossierResponseDto valider(@PathVariable Long id) {
         adminService.validerDossier(id);
+        return adminService.getDossier(id);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PatchMapping("/{id}/rejeter")
-    public void rejeter(@PathVariable Long id,@RequestBody RejectRequest request) {
+    @PostMapping("/{id}/rejeter")
+    public DossierResponseDto rejeter(@PathVariable Long id,@RequestBody RejectRequest request) {
         adminService.rejeterDossier(id,request.getRejectionReason());
+        return adminService.getDossier(id);
     }
 
 }

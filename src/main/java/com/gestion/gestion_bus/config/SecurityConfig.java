@@ -41,7 +41,7 @@ public class SecurityConfig {
 						"/api/objets/**",
 						"/stripe/webhook",
 						"/tickets/**",
-						"/uploads/**",
+						"/uploads/public/**",
 						"/types-abonnement/**",
 						"/reclamations/all",
 						"/reclamations/date/**",
@@ -52,8 +52,9 @@ public class SecurityConfig {
 						"/admin/**",
 						"/role/**"
 					).hasRole("ADMIN")
-                    // Les routes /cards/** nécessitent une authentification USER
-                    .requestMatchers("/cards/**").authenticated()
+						.requestMatchers("/uploads/private/**").hasRole("ADMIN")
+						.requestMatchers("/admin/**", "/role/**").hasRole("ADMIN")
+						.requestMatchers("/cards/**").authenticated()
                     .anyRequest().authenticated()
                 )
 

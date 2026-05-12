@@ -24,4 +24,6 @@ public class UserResponseDto {
     private String cinUrl;
     private String cin;
     private String cne;
+    private String statusDossier;
+    private String rejectionReason;
 }
