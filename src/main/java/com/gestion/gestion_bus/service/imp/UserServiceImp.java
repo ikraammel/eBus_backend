@@ -170,4 +170,35 @@ public class UserServiceImp implements UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    @Override
+    public UserResponseDto resubmitDossier(Long userId, MultipartFile newCinFile, MultipartFile newCarteScolaireFile) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+        // Mettre à jour la photo CIN si fournie
+        if (newCinFile != null && !newCinFile.isEmpty()) {
+            String cinUrl = fileStorageService.save(newCinFile);
+            user.setCinUrl(cinUrl);
+        }
+
+        // Mettre à jour la carte scolaire si fournie
+        if (newCarteScolaireFile != null && !newCarteScolaireFile.isEmpty()) {
+            String carteScolaireUrl = fileStorageService.save(newCarteScolaireFile);
+            user.setCarteScolaireUrl(carteScolaireUrl);
+        }
+
+        userRepository.save(user);
+
+        // Remettre le dossier à EN_ATTENTE
+        Dossier dossier = dossierRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("Dossier introuvable"));
+
+        dossier.setStatus(StatusDossier.EN_ATTENTE);
+        dossier.setRejectionReason(null);
+        dossier.setUpdatedAt(java.time.LocalDateTime.now());
+        dossierRepository.save(dossier);
+
+        return userMapper.toDto(user);
+    }
 }

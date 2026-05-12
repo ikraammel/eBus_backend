@@ -15,10 +15,10 @@ public class TypeAbonnementController {
 
     private final TypeAbonnementService service;
 
-    @GetMapping
-    public List<TypeAbonnement> getAll() {
-        return service.getAll();
-    }
+	@GetMapping
+	public List<TypeAbonnement> getAll() {
+		return service.getTypesForCurrentUser();
+	}
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping

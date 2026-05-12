@@ -19,6 +19,8 @@ import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import com.gestion.gestion_bus.enums.StatusDossier;
+
 
 @Service
 @RequiredArgsConstructor
@@ -43,56 +45,129 @@ public class AbonnementServiceImp implements AbonnementService {
         return dto;
     }
 
-    @Override
-    @Transactional
-    public String createAbonnement(Long userId, Long typeId) throws Exception {
+	@Override
+	@Transactional
+	public String createAbonnement(Long userId, Long typeId) throws Exception {
 
-        User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
-        TypeAbonnement type = typeAbonnementRepository.findById(typeId)
-            .orElseThrow(() -> new RuntimeException("Type d'abonnement introuvable"));
-
-        if (!type.isActif())
-            throw new RuntimeException("Type abonnement désactivé");
+		TypeAbonnement type = typeAbonnementRepository.findById(typeId)
+			.orElseThrow(() -> new RuntimeException("Type d'abonnement introuvable"));
 
 
-        Optional<Abonnement> existingPending = abonnementRepository
-            .findTopByUserIdAndStatusOrderByIdDesc(userId, StatusAbonnement.EN_ATTENTE);
-        existingPending.ifPresent(a -> {
-            a.setStatus(StatusAbonnement.REFUSE);
-            abonnementRepository.save(a);
-        });
+
+		if (user.getStatusDossier() == null) {
+			throw new RuntimeException("Votre dossier n'est pas encore traité");
+		}
+
+		if (user.getStatusDossier() == StatusDossier.EN_ATTENTE
+			) {
+
+			throw new RuntimeException(
+				"Votre dossier est en attente de validation"
+			);
+		}
+
+		if (user.getStatusDossier() == StatusDossier.REJETE) {
+
+			throw new RuntimeException(
+				"Votre dossier a été rejeté. Veuillez modifier vos informations personnelles"
+			);
+		}
+
+		if (user.getStatusDossier() != StatusDossier.VALIDE) {
+
+			throw new RuntimeException(
+				"Votre dossier doit être validé avant abonnement"
+			);
+		}
 
 
-		Abonnement a = new Abonnement();
-		a.setUser(user);
-		a.setTypeAbonnement(type);
-		a.setPrix(type.getPrix());
 
-// Utilisation de LocalDateTime au lieu de LocalDate
-		a.setDateDebut(LocalDateTime.now());
-		a.setDateFin(LocalDateTime.now().plusMonths(type.getDureeMois()));
-        a.setStatus(StatusAbonnement.EN_ATTENTE);
-
-        Abonnement saved = abonnementRepository.save(a);
-
-        Payment payment = new Payment();
-        payment.setMontant(type.getPrix());
-        payment.setStatut("EN_ATTENTE");
-        payment.setDatePaiement(LocalDateTime.now());
-        payment.setUser(user);
-        payment.setAbonnement(saved);
-        paymentRepository.save(payment);
+		if (!type.isActif()) {
+			throw new RuntimeException("Type abonnement désactivé");
+		}
 
 
-        return stripeService.createCheckoutSession(
-            type.getStripePriceId(),
-            saved.getId(),
-            user.getEmail()
-        );
-    }
 
+		Optional<Abonnement> existingActif =
+			abonnementRepository.findTopByUserIdAndStatusOrderByIdDesc(
+				userId,
+				StatusAbonnement.ACTIF
+			);
+
+		if (existingActif.isPresent()) {
+
+			Abonnement abo = existingActif.get();
+
+
+			if (abo.getDateFin() != null
+				&& abo.getDateFin().toLocalDate().isBefore(LocalDate.now())) {
+
+				abo.setStatus(StatusAbonnement.EXPIRE);
+				abonnementRepository.save(abo);
+
+			} else {
+
+				throw new RuntimeException(
+					"Vous avez déjà un abonnement actif"
+				);
+			}
+		}
+
+
+
+		Optional<Abonnement> existingPending =
+			abonnementRepository.findTopByUserIdAndStatusOrderByIdDesc(
+				userId,
+				StatusAbonnement.EN_ATTENTE
+			);
+
+		existingPending.ifPresent(a -> {
+			a.setStatus(StatusAbonnement.REFUSE);
+			abonnementRepository.save(a);
+		});
+
+
+
+		Abonnement abonnement = new Abonnement();
+
+		abonnement.setUser(user);
+		abonnement.setTypeAbonnement(type);
+		abonnement.setPrix(type.getPrix());
+
+		abonnement.setDateDebut(LocalDateTime.now());
+
+		abonnement.setDateFin(
+			LocalDateTime.now().plusMonths(type.getDureeMois())
+		);
+
+		abonnement.setStatus(StatusAbonnement.EN_ATTENTE);
+
+		Abonnement saved = abonnementRepository.save(abonnement);
+
+
+
+		Payment payment = new Payment();
+
+		payment.setMontant(type.getPrix());
+		payment.setStatut("EN_ATTENTE");
+		payment.setDatePaiement(LocalDateTime.now());
+
+		payment.setUser(user);
+		payment.setAbonnement(saved);
+
+		paymentRepository.save(payment);
+
+
+
+		return stripeService.createCheckoutSession(
+			type.getStripePriceId(),
+			saved.getId(),
+			user.getEmail()
+		);
+	}
     @Override
     @Transactional
     public AbonnementDto updateStatus(Long id, StatusAbonnement status) {
@@ -104,7 +179,7 @@ public class AbonnementServiceImp implements AbonnementService {
 
         abonnementRepository.save(a);
 
-        // Mettre à jour aussi le Payment lié
+
         paymentRepository.findByAbonnementId(id).ifPresent(p -> {
             p.setStatut(status == StatusAbonnement.ACTIF ? "PAYE" : status.name());
             paymentRepository.save(p);
@@ -115,7 +190,7 @@ public class AbonnementServiceImp implements AbonnementService {
 
     @Override
     public AbonnementDto getAbonnementByUser(Long userId) {
-        // Retourne le plus récent (actif, en attente ou refusé)
+
         Abonnement a = abonnementRepository
             .findTopByUserIdOrderByIdDesc(userId)
             .orElseThrow(() -> new RuntimeException("Aucun abonnement trouvé pour cet utilisateur"));

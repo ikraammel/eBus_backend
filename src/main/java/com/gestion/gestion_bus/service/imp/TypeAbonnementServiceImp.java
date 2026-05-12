@@ -5,6 +5,9 @@ import com.gestion.gestion_bus.repository.TypeAbonnementRepository;
 import com.gestion.gestion_bus.service.interfaces.TypeAbonnementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.gestion.gestion_bus.models.User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
 
@@ -41,4 +44,22 @@ public class TypeAbonnementServiceImp implements TypeAbonnementService {
     public void delete(Long id) {
         typeAbonnementRepository.deleteById(id);
     }
+	@Override
+
+	public List<TypeAbonnement> getTypesForCurrentUser() {
+
+		Authentication authentication = SecurityContextHolder
+			.getContext()
+			.getAuthentication();
+
+		User user = (User) authentication.getPrincipal();
+
+
+		if(user.getCne() != null && !user.getCne().isEmpty()) {
+			return typeAbonnementRepository.findAll();
+		}
+
+
+		return typeAbonnementRepository.findByIsStudent(false);
+	}
 }

@@ -28,31 +28,33 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 .authorizeHttpRequests(auth -> auth
-						.requestMatchers(
-							"/users/login",
-							"/users/register",
-							"/users/forgot-password",
-							"/users/verify-reset-code",
-							"/users/reset-password",
-							"/lignes/**",
-							"/bus/**",
-							"/horaires/**",
-							"/reclamations/**",
-							"/api/objets/**",
-							"/stripe/webhook",
-							"/tickets/**",
-							"/uploads/**",            // Fichiers statiques uploadés
-							"/types-abonnement/**",
-							"/reclamations/all",
-							"/reclamations/date/**",
-							"/reclamations/status/**",
-							"/reclamations/{id}"
-						).permitAll()
-						.requestMatchers(
-							"/admin/**",
-							"/role/**"
-						).hasRole("ADMIN")
-                        .anyRequest().authenticated()
+					.requestMatchers(
+						"/users/login",
+						"/users/register",
+						"/users/forgot-password",
+						"/users/verify-reset-code",
+						"/users/reset-password",
+						"/lignes/**",
+						"/bus/**",
+						"/horaires/**",
+						"/reclamations/**",
+						"/api/objets/**",
+						"/stripe/webhook",
+						"/tickets/**",
+						"/uploads/**",
+						"/types-abonnement/**",
+						"/reclamations/all",
+						"/reclamations/date/**",
+						"/reclamations/status/**",
+						"/reclamations/{id}"
+					).permitAll()
+					.requestMatchers(
+						"/admin/**",
+						"/role/**"
+					).hasRole("ADMIN")
+                    // Les routes /cards/** nécessitent une authentification USER
+                    .requestMatchers("/cards/**").authenticated()
+                    .anyRequest().authenticated()
                 )
 
 				.sessionManagement(session ->
@@ -63,7 +65,4 @@ public class SecurityConfig {
 
         return http.build();
     }
-
-
-
 }

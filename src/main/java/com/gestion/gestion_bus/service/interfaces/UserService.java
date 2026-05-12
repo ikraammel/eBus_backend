@@ -21,4 +21,7 @@ public interface UserService {
     UserResponseDto updateAvatar(Long id, MultipartFile photo);
 
     void changePassword(Long userId, String oldPassword, String newPassword);
+
+
+    UserResponseDto resubmitDossier(Long userId, MultipartFile newCinFile, MultipartFile newCarteScolaireFile);
 }
