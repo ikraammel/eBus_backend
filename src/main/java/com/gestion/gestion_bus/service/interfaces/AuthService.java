@@ -9,6 +9,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface AuthService {
     AuthenticationResponse login(LoginRequestDto login);
-    UserResponseDto registerUser(UserRequestDto user, MultipartFile photo, MultipartFile carteScolaire, MultipartFile cin);
+    UserResponseDto registerUser(UserRequestDto dto,
+                                 MultipartFile photo,
+                                 MultipartFile carteScolaire,
+                                 MultipartFile attestationScolaire,
+                                 MultipartFile cinPhoto);
 
 }

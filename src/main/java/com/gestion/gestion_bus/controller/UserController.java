@@ -46,6 +46,7 @@ public class UserController {
             @RequestPart("user") String userJson,
             @RequestPart(value = "photo", required = false) MultipartFile photo,
             @RequestPart(value = "carteScolaire", required = false) MultipartFile carteScolaire,
+            @RequestPart(value = "attestationScolaire", required = false) MultipartFile attestationScolaire,
             @RequestPart(value = "cinPhoto", required = false) MultipartFile cinPhoto
     ) throws Exception {
 
@@ -54,8 +55,9 @@ public class UserController {
         System.out.println("photo = " + (photo != null));
         System.out.println("carteScolaire = " + (carteScolaire != null));
         System.out.println("cinPhoto = " + (cinPhoto != null));
+        System.out.println("attestationScolaire = " + (attestationScolaire != null));
 
-        return ResponseEntity.ok(authService.registerUser(dto, photo, carteScolaire, cinPhoto));
+        return ResponseEntity.ok(authService.registerUser(dto, photo, carteScolaire, attestationScolaire, cinPhoto));
     }
 
     @PatchMapping("/update/{id}")
@@ -193,9 +195,11 @@ public class UserController {
     public ResponseEntity<UserResponseDto> resubmitDossier(
             @PathVariable Long userId,
             @RequestPart(value = "cinPhoto", required = false) MultipartFile cinPhoto,
-            @RequestPart(value = "carteScolaire", required = false) MultipartFile carteScolaire
-    ) {
-        return ResponseEntity.ok(userService.resubmitDossier(userId, cinPhoto, carteScolaire));
+            @RequestPart(value = "carteScolaire", required = false) MultipartFile carteScolaire,
+            @RequestPart(value = "attestationScolaire", required = false) MultipartFile attestationScolaire,
+            @RequestPart(value = "photo", required = false) MultipartFile photo
+            ) {
+        return ResponseEntity.ok(userService.resubmitDossier(userId, cinPhoto, carteScolaire, attestationScolaire,photo));
     }
 
 }

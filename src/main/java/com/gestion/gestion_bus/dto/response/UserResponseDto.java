@@ -21,6 +21,7 @@ public class UserResponseDto {
     private String statutAbonnement;
     private String photoUrl;
     private String carteScolaireUrl;
+    private String attestationScolaireUrl;
     private String cinUrl;
     private String cin;
     private String cne;

@@ -23,5 +23,10 @@ public interface UserService {
     void changePassword(Long userId, String oldPassword, String newPassword);
 
 
-    UserResponseDto resubmitDossier(Long userId, MultipartFile newCinFile, MultipartFile newCarteScolaireFile);
+    UserResponseDto resubmitDossier(Long userId,
+                                    MultipartFile newCinFile,
+                                    MultipartFile newCarteScolaireFile,
+                                    MultipartFile newAttestationScolaireFile,
+                                    MultipartFile photo
+                                    );
 }

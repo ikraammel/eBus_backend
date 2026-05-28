@@ -33,6 +33,7 @@ public class DossierMapper {
         dto.setPhotoUrl(user.getPhotoUrl());
         dto.setCinUrl(user.getCinUrl());
         dto.setCarteScolaireUrl(user.getCarteScolaireUrl());
+        dto.setAttestationScolaireUrl(user.getAttestationScolaireUrl());
 
         if (abonnement != null) {
             dto.setTypeAbonnement(abonnement.getTypeAbonnement() != null

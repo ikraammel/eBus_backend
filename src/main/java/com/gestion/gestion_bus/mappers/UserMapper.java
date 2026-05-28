@@ -29,6 +29,7 @@ public class UserMapper {
 
         dto.setPhotoUrl(user.getPhotoUrl());
         dto.setCarteScolaireUrl(user.getCarteScolaireUrl());
+        dto.setAttestationScolaireUrl(user.getAttestationScolaireUrl());
         dto.setCinUrl(user.getCinUrl());
 
         if (user.getAbonnements() != null && !user.getAbonnements().isEmpty()) {

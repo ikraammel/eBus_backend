@@ -170,9 +170,20 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public UserResponseDto resubmitDossier(Long userId, MultipartFile newCinFile, MultipartFile newCarteScolaireFile) {
+    public UserResponseDto resubmitDossier(
+            Long userId,
+            MultipartFile newCinFile,
+            MultipartFile newCarteScolaireFile,
+            MultipartFile newAttestationScolaireFile,
+            MultipartFile photo
+    ) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+
+
+        System.out.println("newCinFile = " + (newCinFile != null && !newCinFile.isEmpty()));
+        System.out.println("newCarteScolaireFile = " + (newCarteScolaireFile != null && !newCarteScolaireFile.isEmpty()));
+        System.out.println("newAttestationScolaireFile = " + (newAttestationScolaireFile != null && !newAttestationScolaireFile.isEmpty()));
 
         // Mettre à jour la photo CIN si fournie
         if (newCinFile != null && !newCinFile.isEmpty()) {
@@ -184,6 +195,14 @@ public class UserServiceImp implements UserService {
         if (newCarteScolaireFile != null && !newCarteScolaireFile.isEmpty()) {
             String carteScolaireUrl = fileStorageService.savePrivate(newCarteScolaireFile);
             user.setCarteScolaireUrl(carteScolaireUrl);
+        }
+
+        if (newAttestationScolaireFile != null && !newAttestationScolaireFile.isEmpty())
+            user.setAttestationScolaireUrl(fileStorageService.savePrivate(newAttestationScolaireFile));
+
+        if (photo != null && !photo.isEmpty()) {
+            String photoUrl = fileStorageService.savePublic(photo);
+            user.setPhotoUrl(photoUrl);
         }
 
         userRepository.save(user);

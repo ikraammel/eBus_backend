@@ -2,7 +2,6 @@ package com.gestion.gestion_bus.dto.response;
 
 import lombok.Data;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -22,6 +21,7 @@ public class DossierResponseDto {
     private String photoUrl;
     private String cinUrl;
     private String carteScolaireUrl;
+    private String attestationScolaireUrl;
 
     private String typeAbonnement;
     private double prix;

@@ -44,6 +44,7 @@ public class User implements UserDetails {
     private String dateNaissance;
     private String photoUrl;
     private String carteScolaireUrl;
+    private String attestationScolaireUrl;
     private String cinUrl;
 
     @NonNull

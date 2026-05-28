@@ -58,9 +58,10 @@ public class AuthServiceImp implements AuthService {
     public UserResponseDto registerUser(UserRequestDto dto,
                                         MultipartFile photo,
                                         MultipartFile carteScolaire,
+                                        MultipartFile attestationScolaire,
                                         MultipartFile cinPhoto) {
 
-        verifyChamps(dto, photo, carteScolaire, cinPhoto);
+        verifyChamps(dto, photo, carteScolaire, attestationScolaire, cinPhoto);
 
         String cinClean = dto.getCin().trim();
         String cne = dto.getCne() != null ? dto.getCne().trim() : null;
@@ -106,6 +107,9 @@ public class AuthServiceImp implements AuthService {
         if (carteScolaire != null && !carteScolaire.isEmpty())
             user.setCarteScolaireUrl(fileStorageService.savePrivate(carteScolaire));
 
+        if (attestationScolaire != null && !attestationScolaire.isEmpty())
+            user.setAttestationScolaireUrl(fileStorageService.savePrivate(attestationScolaire));
+
         if (cinPhoto != null && !cinPhoto.isEmpty())
             user.setCinUrl(fileStorageService.savePrivate(cinPhoto));
 
@@ -142,6 +146,7 @@ public class AuthServiceImp implements AuthService {
     private void verifyChamps(UserRequestDto dto,
                               MultipartFile photo,
                               MultipartFile carteScolaire,
+                              MultipartFile attestationScolaire,
                               MultipartFile cinPhoto) {
 
         if (dto.getNom() == null || dto.getNom().isBlank())
@@ -167,6 +172,7 @@ public class AuthServiceImp implements AuthService {
 
         if (photo == null || photo.isEmpty()
                 || carteScolaire == null || carteScolaire.isEmpty()
+                || attestationScolaire == null || attestationScolaire.isEmpty()
                 || cinPhoto == null || cinPhoto.isEmpty()) {
             throw new RuntimeException("Documents obligatoires");
         }
