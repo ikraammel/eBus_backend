@@ -4,7 +4,6 @@ import com.gestion.gestion_bus.dto.request.LoginRequestDto;
 import com.gestion.gestion_bus.dto.request.UserRequestDto;
 import com.gestion.gestion_bus.dto.response.AuthenticationResponse;
 import com.gestion.gestion_bus.dto.response.UserResponseDto;
-import com.gestion.gestion_bus.enums.StatusAbonnement;
 import com.gestion.gestion_bus.enums.StatusDossier;
 import com.gestion.gestion_bus.mappers.UserMapper;
 import com.gestion.gestion_bus.models.*;
@@ -18,14 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImp implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final AbonnementRepository abonnementRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
@@ -120,27 +117,17 @@ public class AuthServiceImp implements AuthService {
 
         dossierRepository.save(dossier);
 
-        Abonnement abonnement = new Abonnement();
-        abonnement.setUser(savedUser);
-        abonnement.setTypeAbonnement(type);
-        abonnement.setPrix(type.getPrix());
-        abonnement.setDateDebut(LocalDateTime.now());
-        abonnement.setDateFin(LocalDateTime.now().plusMonths(type.getDureeMois()));
-        abonnement.setStatus(StatusAbonnement.EN_ATTENTE);
 
-        abonnementRepository.save(abonnement);
-        savedUser.getAbonnements().add(abonnement);
-
-        User userWithAbonnement =
+        User savedUserFetched  =
                 userRepository.findByIdWithAbonnements(savedUser.getId())
                         .orElseThrow();
 
         System.out.println("DTO CNE = " + dto.getCne());
         System.out.println("CNE saved = " + savedUser.getCne());
-        System.out.println("CNE fetched = " + userWithAbonnement.getCne());
+        System.out.println("CNE fetched = " + savedUserFetched.getCne());
         System.out.println("TYPE = " + type.getNom());
         System.out.println("NEEDS_CNE = " + needsCne);
-        return userMapper.toDto(userWithAbonnement);
+        return userMapper.toDto(savedUserFetched);
     }
 
     private void verifyChamps(UserRequestDto dto,

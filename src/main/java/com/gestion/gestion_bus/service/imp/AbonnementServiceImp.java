@@ -34,8 +34,8 @@ public class AbonnementServiceImp implements AbonnementService {
     public AbonnementDto mapWithEffectiveStatus(Abonnement a) {
         AbonnementDto dto = AbonnementMapper.mapToDto(a);
         if (a.getStatus() == StatusAbonnement.ACTIF
-            && a.getDateFin() != null
-            && a.getDateFin().toLocalDate().isBefore(LocalDate.now())) {
+                && a.getDateFin() != null
+                && a.getDateFin().toLocalDate().isBefore(LocalDate.now())) {
             dto.setStatus(StatusAbonnement.EXPIRE);
         }
         return dto;
@@ -46,10 +46,10 @@ public class AbonnementServiceImp implements AbonnementService {
     public String createAbonnement(Long userId, Long typeId) throws Exception {
 
         User user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
+                .orElseThrow(() -> new RuntimeException("Utilisateur introuvable"));
 
         TypeAbonnement type = typeAbonnementRepository.findById(typeId)
-            .orElseThrow(() -> new RuntimeException("Type d'abonnement introuvable"));
+                .orElseThrow(() -> new RuntimeException("Type d'abonnement introuvable"));
 
         // ── Vérifications dossier ──────────────────────────────────────────
         if (user.getStatusDossier() == null) {
@@ -60,7 +60,7 @@ public class AbonnementServiceImp implements AbonnementService {
         }
         if (user.getStatusDossier() == StatusDossier.REJETE) {
             throw new RuntimeException(
-                "Votre dossier a été rejeté. Veuillez modifier vos informations personnelles"
+                    "Votre dossier a été rejeté. Veuillez modifier vos informations personnelles"
             );
         }
         if (user.getStatusDossier() != StatusDossier.VALIDE) {
@@ -72,14 +72,14 @@ public class AbonnementServiceImp implements AbonnementService {
 
         // ── Vérifier abonnement ACTIF ──────────────────────────────────────
         Optional<Abonnement> existingActif =
-            abonnementRepository.findTopByUserIdAndStatusOrderByIdDesc(
-                userId, StatusAbonnement.ACTIF
-            );
+                abonnementRepository.findTopByUserIdAndStatusOrderByIdDesc(
+                        userId, StatusAbonnement.ACTIF
+                );
 
         if (existingActif.isPresent()) {
             Abonnement abo = existingActif.get();
             if (abo.getDateFin() != null
-                && abo.getDateFin().toLocalDate().isBefore(LocalDate.now())) {
+                    && abo.getDateFin().toLocalDate().isBefore(LocalDate.now())) {
                 // Expiré → on marque EXPIRE et on continue
                 abo.setStatus(StatusAbonnement.EXPIRE);
                 abonnementRepository.save(abo);
@@ -99,46 +99,56 @@ public class AbonnementServiceImp implements AbonnementService {
     @Override
     @Transactional
     public AbonnementDto updateStatus(Long id, StatusAbonnement status) {
+
+        if (status == StatusAbonnement.ACTIF) {
+            throw new RuntimeException(
+                    "Un abonnement ne peut être activé qu'après un paiement Stripe confirmé"
+            );
+        }
+
         Abonnement a = abonnementRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Abonnement not found"));
+
         a.setStatus(status);
         abonnementRepository.save(a);
+
         paymentRepository.findByAbonnementId(id).ifPresent(p -> {
-            p.setStatut(status == StatusAbonnement.ACTIF ? "PAYE" : status.name());
+            p.setStatut(status.name());
             paymentRepository.save(p);
         });
+
         return mapWithEffectiveStatus(a);
     }
 
     @Override
     public AbonnementDto getAbonnementByUser(Long userId) {
         Abonnement a = abonnementRepository
-            .findTopByUserIdOrderByIdDesc(userId)
-            .orElseThrow(() -> new RuntimeException("Aucun abonnement trouvé pour cet utilisateur"));
+                .findTopByUserIdOrderByIdDesc(userId)
+                .orElseThrow(() -> new RuntimeException("Aucun abonnement trouvé pour cet utilisateur"));
         return mapWithEffectiveStatus(a);
     }
 
     @Override
     public AbonnementDto getAbonnementById(Long id) {
         Abonnement a = abonnementRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Abonnement introuvable"));
+                .orElseThrow(() -> new RuntimeException("Abonnement introuvable"));
         return mapWithEffectiveStatus(a);
     }
 
     @Override
     public List<AbonnementDto> getAllAbonnements() {
         return abonnementRepository.findAll()
-            .stream()
-            .map(this::mapWithEffectiveStatus)
-            .toList();
+                .stream()
+                .map(this::mapWithEffectiveStatus)
+                .toList();
     }
 
     @Override
     public List<AbonnementDto> getHistoriqueByUser(Long userId) {
         return abonnementRepository.findAllByUserIdOrderByIdDesc(userId)
-            .stream()
-            .map(this::mapWithEffectiveStatus)
-            .toList();
+                .stream()
+                .map(this::mapWithEffectiveStatus)
+                .toList();
     }
 
     @Override

@@ -3,18 +3,25 @@ package com.gestion.gestion_bus.controller;
 import com.gestion.gestion_bus.dto.AbonnementDto;
 import com.gestion.gestion_bus.enums.StatusAbonnement;
 import com.gestion.gestion_bus.models.Abonnement;
+import com.gestion.gestion_bus.models.Payment;
+import com.gestion.gestion_bus.models.TypeAbonnement;
+import com.gestion.gestion_bus.models.User;
 import com.gestion.gestion_bus.repository.AbonnementRepository;
 import com.gestion.gestion_bus.repository.PaymentRepository;
+import com.gestion.gestion_bus.repository.TypeAbonnementRepository;
+import com.gestion.gestion_bus.repository.UserRepository;
 import com.gestion.gestion_bus.service.imp.StripeService;
 import com.gestion.gestion_bus.service.interfaces.AbonnementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import com.stripe.model.checkout.Session;
 
 @RestController
 @RequestMapping("/abonnements")
@@ -25,6 +32,8 @@ public class AbonnementController {
     private final AbonnementRepository abonnementRepository;
     private final PaymentRepository paymentRepository;
     private final StripeService stripeService;
+    private final UserRepository userRepository;
+    private final TypeAbonnementRepository typeAbonnementRepository;
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/subscribe")
@@ -40,48 +49,84 @@ public class AbonnementController {
     }
 
 
-    @PostMapping("/{id}/confirm")
+    @PostMapping("/confirm")
+    @Transactional
     public ResponseEntity<String> confirmPayment(
-            @PathVariable Long id,
             @RequestParam String sessionId) {
 
-        System.out.println("[Confirm] Vérification paiement pour abonnement=" + id + " session=" + sessionId);
+        try {
 
-        // 1. Vérifier que l'abonnement existe
-        Optional<Abonnement> opt = abonnementRepository.findById(id);
-        if (opt.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+            Session session = stripeService.retrieveSession(sessionId);
 
-        Abonnement abo = opt.get();
+            boolean paid =
+                    "paid".equals(session.getPaymentStatus())
+                            || "complete".equals(session.getStatus());
 
-        // 2. Si déjà ACTIF → ne rien faire (idempotent)
-        if (abo.getStatus() == StatusAbonnement.ACTIF) {
-            System.out.println("[Confirm] Abonnement déjà ACTIF");
+            if (!paid) {
+                return ResponseEntity.ok("EN_ATTENTE");
+            }
+
+            Long userId =
+                    Long.valueOf(session.getMetadata().get("userId"));
+
+            Long typeAbonnementId =
+                    Long.valueOf(session.getMetadata().get("typeAbonnementId"));
+
+            Optional<Abonnement> existing =
+                    abonnementRepository
+                            .findTopByUserIdAndStatusOrderByIdDesc(
+                                    userId,
+                                    StatusAbonnement.ACTIF
+                            );
+
+            if (existing.isPresent()) {
+                return ResponseEntity.ok("ACTIF");
+            }
+
+            User user = userRepository.findById(userId)
+                    .orElseThrow();
+
+            TypeAbonnement type =
+                    typeAbonnementRepository.findById(typeAbonnementId)
+                            .orElseThrow();
+
+            Abonnement abonnement = new Abonnement();
+
+            abonnement.setUser(user);
+            abonnement.setTypeAbonnement(type);
+            abonnement.setPrix(type.getPrix());
+            abonnement.setDateDebut(LocalDateTime.now());
+            abonnement.setDateFin(
+                    LocalDateTime.now()
+                            .plusMonths(type.getDureeMois())
+            );
+            abonnement.setStatus(StatusAbonnement.ACTIF);
+
+            abonnement.setStripeSubscriptionId(
+                    session.getSubscription()
+            );
+
+            Abonnement saved =
+                    abonnementRepository.save(abonnement);
+
+            Payment payment = new Payment();
+
+            payment.setUser(user);
+            payment.setAbonnement(saved);
+            payment.setMontant(type.getPrix());
+            payment.setStatut("PAYE");
+            payment.setDatePaiement(LocalDateTime.now());
+
+            paymentRepository.save(payment);
+
             return ResponseEntity.ok("ACTIF");
-        }
 
-        // 3. Demander à Stripe si la session est bien payée
-        boolean paid = stripeService.isSessionPaid(sessionId);
-        System.out.println("[Confirm] Stripe payé = " + paid);
+        } catch (Exception e) {
 
-        if (paid) {
-            // 4. Activer l'abonnement
-            abo.setStatus(StatusAbonnement.ACTIF);
-            abonnementRepository.save(abo);
+            e.printStackTrace();
 
-            // 5. Mettre à jour le Payment lié
-            paymentRepository.findByAbonnementId(id).ifPresent(p -> {
-                p.setStatut("PAYE");
-                p.setDatePaiement(LocalDateTime.now());
-                paymentRepository.save(p);
-            });
-
-            System.out.println("[Confirm] ✅ Abonnement " + id + " activé");
-            return ResponseEntity.ok("ACTIF");
-        } else {
-            System.out.println("[Confirm] ⏳ Paiement pas encore confirmé");
-            return ResponseEntity.ok("EN_ATTENTE");
+            return ResponseEntity.badRequest()
+                    .body(e.getMessage());
         }
     }
 

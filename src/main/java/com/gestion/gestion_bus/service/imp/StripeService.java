@@ -34,8 +34,8 @@ public class StripeService {
 			throw new IllegalArgumentException("priceId Stripe manquant");
 		}
 
-		String successUrl = frontendUrl + "/#/payment-success?session_id={CHECKOUT_SESSION_ID}";
-		String cancelUrl  = frontendUrl + "/#/tickets?payment=cancelled";
+		String successUrl = frontendUrl + "payment-success?session_id={CHECKOUT_SESSION_ID}";
+		String cancelUrl  = frontendUrl + "payment-cancel";
 
 		SessionCreateParams params = SessionCreateParams.builder()
 				.setMode(SessionCreateParams.Mode.SUBSCRIPTION)
@@ -67,5 +67,9 @@ public class StripeService {
 			System.out.println("[StripeService] Erreur vérification session : " + e.getMessage());
 			return false;
 		}
+	}
+
+	public Session retrieveSession(String sessionId) throws StripeException {
+		return Session.retrieve(sessionId);
 	}
 }
