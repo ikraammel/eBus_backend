@@ -4,7 +4,6 @@ import com.gestion.gestion_bus.dto.AbonnementDto;
 import com.gestion.gestion_bus.enums.StatusAbonnement;
 import com.gestion.gestion_bus.mappers.AbonnementMapper;
 import com.gestion.gestion_bus.models.Abonnement;
-import com.gestion.gestion_bus.models.Payment;
 import com.gestion.gestion_bus.models.TypeAbonnement;
 import com.gestion.gestion_bus.models.User;
 import com.gestion.gestion_bus.repository.AbonnementRepository;
@@ -15,7 +14,6 @@ import com.gestion.gestion_bus.service.interfaces.AbonnementService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.time.LocalDateTime;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -89,60 +87,13 @@ public class AbonnementServiceImp implements AbonnementService {
                 throw new RuntimeException("Vous avez déjà un abonnement actif");
             }
         }
-
-        // ── Vérifier abonnement EN_ATTENTE ─────────────────────────────────
-        // ✅ CORRECTION PRINCIPALE :
-        // Si un abonnement EN_ATTENTE existe pour le MÊME type,
-        // on génère une NOUVELLE URL Stripe pour reprendre le paiement
-        // au lieu de bloquer l'utilisateur.
-        Optional<Abonnement> existingPending =
-            abonnementRepository.findTopByUserIdAndStatusOrderByIdDesc(
-                userId, StatusAbonnement.EN_ATTENTE
-            );
-
-        if (existingPending.isPresent()) {
-            Abonnement pending = existingPending.get();
-
-            if (pending.getTypeAbonnement() != null
-                    && pending.getTypeAbonnement().getId().equals(typeId)) {
-                // Même type → reprendre le paiement avec une nouvelle session Stripe
-                System.out.println("[Subscribe] Reprise du paiement EN_ATTENTE id=" + pending.getId());
-                return stripeService.createCheckoutSession(
-                    type.getStripePriceId(),
-                    pending.getId(),
-                    user.getEmail()
-                );
-            }
-
-            // Type différent → annuler l'ancien, créer un nouveau
-            pending.setStatus(StatusAbonnement.REFUSE);
-            abonnementRepository.save(pending);
-        }
-
-        // ── Créer un nouvel abonnement ─────────────────────────────────────
-        Abonnement abonnement = new Abonnement();
-        abonnement.setUser(user);
-        abonnement.setTypeAbonnement(type);
-        abonnement.setPrix(type.getPrix());
-        abonnement.setDateDebut(LocalDateTime.now());
-        abonnement.setDateFin(LocalDateTime.now().plusMonths(type.getDureeMois()));
-        abonnement.setStatus(StatusAbonnement.EN_ATTENTE);
-
-        Abonnement saved = abonnementRepository.save(abonnement);
-
-        Payment payment = new Payment();
-        payment.setMontant(type.getPrix());
-        payment.setStatut("EN_ATTENTE");
-        payment.setDatePaiement(LocalDateTime.now());
-        payment.setUser(user);
-        payment.setAbonnement(saved);
-        paymentRepository.save(payment);
-
         return stripeService.createCheckoutSession(
-            type.getStripePriceId(),
-            saved.getId(),
-            user.getEmail()
+                type.getStripePriceId(),
+                user.getId(),
+                type.getId(),
+                user.getEmail()
         );
+
     }
 
     @Override

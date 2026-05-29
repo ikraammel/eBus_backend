@@ -23,24 +23,34 @@ public class StripeService {
 		Stripe.apiKey = apiKey;
 	}
 
-	public String createCheckoutSession(String priceId, Long abonnementId, String userEmail) throws StripeException {
+	public String createCheckoutSession(
+			String priceId,
+			Long userId,
+			Long typeAbonnementId,
+			String userEmail
+	) throws StripeException {
 
-		String successUrl = frontendUrl + "/#/payment-success?aboId=" + abonnementId + "&session_id={CHECKOUT_SESSION_ID}";
+		if (priceId == null || priceId.isBlank()) {
+			throw new IllegalArgumentException("priceId Stripe manquant");
+		}
+
+		String successUrl = frontendUrl + "/#/payment-success?session_id={CHECKOUT_SESSION_ID}";
 		String cancelUrl  = frontendUrl + "/#/tickets?payment=cancelled";
 
 		SessionCreateParams params = SessionCreateParams.builder()
-			.setMode(SessionCreateParams.Mode.SUBSCRIPTION)
-			.setSuccessUrl(successUrl)
-			.setCancelUrl(cancelUrl)
-			.putMetadata("abonnementId", abonnementId.toString())
-			.setCustomerEmail(userEmail)
-			.addLineItem(
-				SessionCreateParams.LineItem.builder()
-					.setQuantity(1L)
-					.setPrice(priceId)
-					.build()
-			)
-			.build();
+				.setMode(SessionCreateParams.Mode.SUBSCRIPTION)
+				.setSuccessUrl(successUrl)
+				.setCancelUrl(cancelUrl)
+				.putMetadata("userId", userId.toString())
+				.putMetadata("typeAbonnementId", typeAbonnementId.toString())
+				.setCustomerEmail(userEmail)
+				.addLineItem(
+						SessionCreateParams.LineItem.builder()
+								.setQuantity(1L)
+								.setPrice(priceId)
+								.build()
+				)
+				.build();
 
 		Session session = Session.create(params);
 		return session.getUrl();
