@@ -1,0 +1,37 @@
+# Tests des images contre la base distante
+
+Le job `tests` du workflow backend attend les deux builds, télécharge leurs images et démarre le backend sur `127.0.0.1:18081` et le frontend sur `127.0.0.1:18082`. Les outils Robot Framework, Playwright et JMeter s'exécutent nativement sur le runner Ubuntu 24.04.
+
+## Secrets requis dans le dépôt backend
+
+`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`, `EBUS_USER_EMAIL`, `EBUS_USER_PASSWORD`, `EBUS_ADMIN_EMAIL`, `EBUS_ADMIN_PASSWORD`.
+
+Les trois variables `DB_*` doivent appartenir à **la même base**. L'URL doit être une URL JDBC PostgreSQL externe accessible depuis GitHub, avec les paramètres TLS requis par le fournisseur. Les comptes USER/ADMIN doivent exister dans cette base, pas simplement dans une autre base ou une autre version déployée.
+
+Le secret optionnel `JWT_SECRET` est utilisé s'il existe ; sinon le job génère une clé aléatoire temporaire. Les tests obtiennent de nouveaux tokens en se connectant au conteneur. Ils ne réutilisent pas les tokens Render. Les vraies clés Stripe et les identifiants mail ne sont pas utilisés : ces fonctions ont une configuration factice et ne sont pas validées par cette suite.
+
+## Préservation des données
+
+- Hibernate utilise `ddl-auto=validate`, sans migration ni création de schéma.
+- Le pool JDBC demande des connexions en lecture seule.
+- Les requêtes des suites sont limitées aux lectures et à `POST /users/login`.
+- Aucun seed, achat, utilisateur, ligne, réclamation ou objet n'est créé ou supprimé.
+- Le nettoyage supprime uniquement les conteneurs du runner.
+
+Le contrôle JDBC complète les restrictions des scénarios ; il ne remplace pas les droits d'un compte PostgreSQL limité si votre infrastructure en propose un. Si le schéma est incompatible, corriger la configuration ou la version applicative : ne pas passer en `update` pour faire réussir le job sur la base réelle.
+
+## Suites et résultats
+
+| Suite | Cas | Périmètre |
+| --- | --- | --- |
+| Robot | 12 | Santé, transport, profil et données du USER authentifié |
+| Playwright | 3 | Invité/lignes, connexion USER/lignes, connexion ADMIN/accueil |
+| JMeter | 7 requêtes, 1 utilisateur, 1 itération | Connexion et lectures ; smoke limité, pas test de capacité |
+
+Le frontend actuellement construit contient l'adresse API Render. Pour garantir que les parcours testent **le backend Docker**, Playwright transmet ces appels au conteneur et restitue ses vraies réponses. Aucune donnée API n'est simulée. Ce routage de test ne valide pas la configuration CORS du déploiement. Les requêtes d'écriture externes sont bloquées.
+
+Une erreur Robot ne masque pas les exécutions indépendantes Playwright/JMeter : elles continuent si les applications sont disponibles. Le job reste en échec si une suite échoue. En particulier, le HTTP 500 anonyme sur `/types-abonnement` précédemment observé reste un défaut si reproduit ; il n'est pas accepté comme succès.
+
+Les rapports sont disponibles dans l'artefact `remote-database-test-reports`. Aucun journal applicatif brut, JWT, capture ou trace navigateur n'est publié. Le diagnostic de démarrage indique une catégorie d'erreur (réseau, authentification, schéma) sans afficher les secrets.
+
+Les résultats des tests de garde-fous et les dry-runs sont distincts de l'exécution fonctionnelle contre GitHub/PostgreSQL. Consulter le résultat réel de la nouvelle exécution avant de conclure que la connexion et les parcours ont réussi.

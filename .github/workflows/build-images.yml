@@ -1,4 +1,4 @@
-name: Build backend and frontend images
+name: Build images and test remote database
 
 on:
   push:
@@ -23,7 +23,7 @@ permissions:
 jobs:
   backend:
     name: Build backend image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -50,7 +50,7 @@ jobs:
 
   frontend:
     name: Build frontend image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
       - name: Checkout frontend repository
@@ -89,3 +89,105 @@ jobs:
           path: ${{ runner.temp }}/ebus-frontend.tar
           retention-days: 3
           compression-level: 0
+
+  tests:
+    name: Test images with existing accounts and remote database
+    needs: [backend, frontend]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Verify required secrets
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          EBUS_USER_EMAIL: ${{ secrets.EBUS_USER_EMAIL }}
+          EBUS_USER_PASSWORD: ${{ secrets.EBUS_USER_PASSWORD }}
+          EBUS_ADMIN_EMAIL: ${{ secrets.EBUS_ADMIN_EMAIL }}
+          EBUS_ADMIN_PASSWORD: ${{ secrets.EBUS_ADMIN_PASSWORD }}
+        run: python ci/runtime.py validate
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ebus-*-image
+          merge-multiple: true
+          path: ${{ runner.temp }}/images
+      - name: Load built application images
+        run: |
+          docker load -i "$RUNNER_TEMP/images/ebus-backend.tar"
+          docker load -i "$RUNNER_TEMP/images/ebus-frontend.tar"
+      - name: Install native test dependencies
+        run: |
+          python -m pip install --disable-pip-version-check -r ci/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Verify test safety guards offline
+        run: python -m unittest discover -s ci -p test_guards.py
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install native JMeter
+        run: python ci/install_jmeter.py
+      - name: Start images against remote PostgreSQL
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          DB_USERNAME: ${{ secrets.DB_USERNAME }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          EBUS_USER_EMAIL: ${{ secrets.EBUS_USER_EMAIL }}
+          EBUS_USER_PASSWORD: ${{ secrets.EBUS_USER_PASSWORD }}
+          EBUS_ADMIN_EMAIL: ${{ secrets.EBUS_ADMIN_EMAIL }}
+          EBUS_ADMIN_PASSWORD: ${{ secrets.EBUS_ADMIN_PASSWORD }}
+        run: python ci/runtime.py start
+      - name: Wait for application readiness
+        id: ready
+        run: python ci/runtime.py ready
+      - name: Robot Framework - existing USER API checks
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
+        env:
+          EBUS_USER_EMAIL: ${{ secrets.EBUS_USER_EMAIL }}
+          EBUS_USER_PASSWORD: ${{ secrets.EBUS_USER_PASSWORD }}
+        run: python -m robot --loglevel NONE --log NONE --report ci-reports/robot-report.html --output ci-reports/robot-output.xml ci/api.robot
+      - name: Playwright - guest, USER and ADMIN browser journeys
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
+        env:
+          EBUS_USER_EMAIL: ${{ secrets.EBUS_USER_EMAIL }}
+          EBUS_USER_PASSWORD: ${{ secrets.EBUS_USER_PASSWORD }}
+          EBUS_ADMIN_EMAIL: ${{ secrets.EBUS_ADMIN_EMAIL }}
+          EBUS_ADMIN_PASSWORD: ${{ secrets.EBUS_ADMIN_PASSWORD }}
+        run: python ci/browser.py
+      - name: JMeter - one USER, one iteration, seven requests
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
+        env:
+          EBUS_USER_EMAIL: ${{ secrets.EBUS_USER_EMAIL }}
+          EBUS_USER_PASSWORD: ${{ secrets.EBUS_USER_PASSWORD }}
+        run: |
+          mkdir -p ci-reports
+          set +e
+          jmeter -n -t ci/smoke.jmx -l ci-reports/jmeter.csv -j "$RUNNER_TEMP/jmeter.log" -Jjmeter.save.saveservice.output_format=csv -Jjmeter.save.saveservice.response_data=false -Jjmeter.save.saveservice.samplerData=false -Jjmeter.save.saveservice.requestHeaders=false -Jjmeter.save.saveservice.responseHeaders=false -Jjmeter.save.saveservice.assertion_results_failure_message=false -Jjmeter.save.saveservice.url=false
+          runtime_status=$?
+          python ci/summarize_jmeter.py
+          summary_status=$?
+          if [ "$runtime_status" -ne 0 ] || [ "$summary_status" -ne 0 ]; then
+            exit 1
+          fi
+      - name: Upload test reports without raw logs or browser traces
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: remote-database-test-reports
+          path: |
+            ci-reports/*.json
+            ci-reports/*.html
+            ci-reports/*.xml
+            ci-reports/jmeter.csv
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Stop CI containers
+        if: ${{ always() }}
+        run: python ci/runtime.py stop

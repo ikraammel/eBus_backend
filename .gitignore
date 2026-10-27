@@ -36,3 +36,7 @@ build/
 .env.*
 !.env.remote.example
 serviceAccountKey.json
+ci-reports/
+__pycache__/
+*.py[cod]
+.pytest_cache/

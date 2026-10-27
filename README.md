@@ -9,7 +9,7 @@ API de transport eBus développée en Java 17 avec Spring Boot 3.2.6 et PostgreS
 
 ## Structure
 
-La construction centralisée des images backend/frontend est préparée dans `.github/workflows/build-images.yml`, avec lancement manuel et téléchargement des images en artefacts. Voir [la procédure GitHub Actions](docs/build-images.md) pour les fichiers frontend à pousser et les prérequis. Aucun identifiant de base n'est requis pour le build.
+Le workflow `.github/workflows/build-images.yml` construit les images backend/frontend, puis exécute un job Robot/Playwright/JMeter contre le backend connecté à la base distante avec les comptes existants. Voir [la procédure GitHub Actions](docs/build-images.md) et [les secrets et protections des tests](ci/README.md). Aucun identifiant de base n'est requis pour le build ; les secrets sont nécessaires au job de tests.
 
 - `src/main/java/com/gestion/gestion_bus` : contrôleurs, services, modèles, accès aux données et configuration de sécurité.
 - `src/main/resources/application.yaml` : paramètres externalisés.
