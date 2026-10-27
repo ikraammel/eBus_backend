@@ -9,6 +9,8 @@ API de transport eBus développée en Java 17 avec Spring Boot 3.2.6 et PostgreS
 
 ## Structure
 
+La construction centralisée des images backend/frontend est préparée dans `.github/workflows/build-images.yml`, avec lancement manuel et téléchargement des images en artefacts. Voir [la procédure GitHub Actions](docs/build-images.md) pour les fichiers frontend à pousser et les prérequis. Aucun identifiant de base n'est requis pour le build.
+
 - `src/main/java/com/gestion/gestion_bus` : contrôleurs, services, modèles, accès aux données et configuration de sécurité.
 - `src/main/resources/application.yaml` : paramètres externalisés.
 - `src/test/java/com/gestion/gestion_bus` : tests unitaires et tests de contexte/API.
@@ -24,6 +26,38 @@ java -jar target/gestion-bus-0.0.1-SNAPSHOT.jar
 ```
 
 L'endpoint `/api/health` permet de contrôler la disponibilité. Les tests automatisés n'exigent pas Docker ; utiliser une base PostgreSQL native dédiée aux tests.
+
+## Image Docker et base PostgreSQL distante
+
+Depuis la racine de ce clone backend :
+
+```powershell
+docker build -t ebus-backend:local .
+Copy-Item .env.remote.example .env.remote
+notepad .env.remote
+```
+
+Renseigner les valeurs privées dans `.env.remote`, exclu de Git et du contexte Docker. `DB_URL` doit être une URL JDBC PostgreSQL externe accessible depuis le PC, par exemple `jdbc:postgresql://HOTE:5432/BASE?sslmode=require`. L'URL HTTPS de l'API Render n'est pas une URL de base. Une adresse interne Render ne fonctionne pas depuis le poste.
+
+Fournir les identifiants de base et les paramètres JWT, mail et Stripe attendus par l'application. L'image ne contient aucun de ces secrets ; ils sont injectés au démarrage. Sur GitHub Actions, les fournir depuis GitHub Secrets à l'exécution, sans arguments de build contenant des secrets.
+
+Pour un smoke local sans envoi de mail, le poste peut utiliser un secret JWT aléatoire propre au conteneur, des identifiants mail factices et `SPRING_MAIL_HOST=127.0.0.1`, `SPRING_MAIL_PORT=1025`, avec authentification et STARTTLS SMTP désactivés. Cette configuration ne valide pas les envois mail ; les JWT de ce conteneur sont distincts de ceux de Render. La copie privée `.env.remote` du poste utilise ce mode lorsque les paramètres réels manquent.
+
+Une fois le fichier renseigné :
+
+```powershell
+docker compose -f compose.remote.yaml up -d
+docker compose -f compose.remote.yaml ps
+Invoke-RestMethod http://127.0.0.1:18081/api/health
+# Arrêt sans effacer les fichiers téléversés :
+docker compose -f compose.remote.yaml stop
+```
+
+Le backend tourne localement dans Docker et se connecte à la base distante ; aucun PostgreSQL local n'est démarré par ce Compose. Le port `18081` évite le conflit avec l'API QA sur `18080`. Le frontend doit cibler cette API locale pour utiliser ce conteneur.
+
+La configuration impose `ddl-auto=validate` pour vérifier le schéma existant sans lancer sa mise à jour automatique. Un schéma incompatible empêche le démarrage. Les actions métier de l'application peuvent toujours écrire dans la base ; aucun seed ni nettoyage de données n'est lancé par cette procédure.
+
+Le build compile l'application sans exécuter les tests. Il ne contacte pas la base distante. L'image utilise Java 17 JRE et un utilisateur sans privilèges ; les fichiers téléversés persistent dans un volume dédié. Garder les tests Java et la vérification de connexion comme étapes distinctes.
 
 ## Tests unitaires sans base
 

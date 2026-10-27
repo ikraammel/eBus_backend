@@ -1,0 +1,91 @@
+name: Build backend and frontend images
+
+on:
+  push:
+    branches:
+      - ci/docker-images
+  workflow_dispatch:
+    inputs:
+      frontend_ref:
+        description: Frontend branch, tag or commit to build
+        required: true
+        default: ci/docker-images
+        type: string
+      api_base_url:
+        description: Public API URL embedded in Flutter Web (never a secret)
+        required: true
+        default: https://ebus-backend-ao2u.onrender.com
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Build backend image
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-buildx-action@v3
+      - name: Build backend without database credentials
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          tags: ebus-backend:ci
+          push: false
+          outputs: type=docker,dest=${{ runner.temp }}/ebus-backend.tar
+          cache-from: type=gha,scope=backend
+          cache-to: type=gha,mode=max,scope=backend
+      - name: Upload backend image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebus-backend-image
+          path: ${{ runner.temp }}/ebus-backend.tar
+          retention-days: 3
+          compression-level: 0
+
+  frontend:
+    name: Build frontend image
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout frontend repository
+        uses: actions/checkout@v4
+        with:
+          repository: ikraammel/eBus_frontend
+          ref: ${{ inputs.frontend_ref || 'ci/docker-images' }}
+          path: frontend
+          token: ${{ secrets.FRONTEND_REPO_TOKEN || github.token }}
+          persist-credentials: false
+      - name: Verify required frontend files
+        working-directory: frontend
+        run: |
+          test -f Dockerfile
+          test -f nginx.conf
+          test -f eBus_front/pubspec.yaml
+          grep -q String.fromEnvironment eBus_front/lib/constants/constants.dart
+          grep -q API_BASE_URL eBus_front/lib/constants/constants.dart
+      - uses: docker/setup-buildx-action@v3
+      - name: Build Flutter Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: frontend
+          file: frontend/Dockerfile
+          build-args: |
+            API_BASE_URL=${{ inputs.api_base_url || 'https://ebus-backend-ao2u.onrender.com' }}
+          tags: ebus-frontend:ci
+          push: false
+          outputs: type=docker,dest=${{ runner.temp }}/ebus-frontend.tar
+          cache-from: type=gha,scope=frontend
+          cache-to: type=gha,mode=max,scope=frontend
+      - name: Upload frontend image
+        uses: actions/upload-artifact@v4
+        with:
+          name: ebus-frontend-image
+          path: ${{ runner.temp }}/ebus-frontend.tar
+          retention-days: 3
+          compression-level: 0

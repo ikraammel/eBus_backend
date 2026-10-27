@@ -1,0 +1,19 @@
+name: ebus-backend-remote
+services:
+  backend:
+    image: ebus-backend:local
+    build:
+      context: .
+      dockerfile: Dockerfile
+    env_file:
+      - .env.remote
+    environment:
+      PORT: 8080
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: "false"
+    ports:
+      - "127.0.0.1:18081:8080"
+    volumes:
+      - backend-uploads:/app/uploads
+volumes:
+  backend-uploads:

@@ -1,0 +1,14 @@
+.git
+target
+.idea
+.vscode
+.env
+.env.*
+**/.env
+**/.env.*
+uploads
+serviceAccountKey.json
+**/serviceAccountKey.json
+**/*.pem
+**/*.key
+*.log
