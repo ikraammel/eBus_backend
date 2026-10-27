@@ -68,6 +68,25 @@ class Guards(unittest.TestCase):
         self.assertIn("System.getenv('EBUS_USER_PASSWORD')", text)
         self.assertNotIn('CSVDataSet', text)
 
+    def test_diagnostics_keep_cause_without_exposing_secrets(self):
+        password = 'private-test-password'
+        logs = ('Caused by: org.postgresql.util.PSQLException: password=' + password +
+                ' jdbc:postgresql://private-host.invalid:5432/db user=private-test-user\n'
+                'Caused by: java.net.UnknownHostException: private-host.invalid\n')
+        details = '\n'.join(runtime.diagnostic_details(logs, [password, 'private-test-user', 'private-host.invalid']))
+        self.assertIn('PSQLException', details)
+        self.assertIn('UnknownHostException', details)
+        self.assertNotIn(password, details)
+        self.assertNotIn('private-test-user', details)
+        self.assertNotIn('private-host.invalid', details)
+        self.assertNotIn('jdbc:postgresql://', details)
+
+    def test_diagnostics_suppress_tokens_and_email(self):
+        value = runtime.redact('Bearer eyJabc.abc.def email=qa@example.invalid secret=some-private-value')
+        self.assertNotIn('eyJabc.abc.def', value)
+        self.assertNotIn('qa@example.invalid', value)
+        self.assertNotIn('some-private-value', value)
+
 
 if __name__ == '__main__':
     unittest.main()

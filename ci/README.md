@@ -35,3 +35,11 @@ Une erreur Robot ne masque pas les exécutions indépendantes Playwright/JMeter 
 Les rapports sont disponibles dans l'artefact `remote-database-test-reports`. Aucun journal applicatif brut, JWT, capture ou trace navigateur n'est publié. Le diagnostic de démarrage indique une catégorie d'erreur (réseau, authentification, schéma) sans afficher les secrets.
 
 Les résultats des tests de garde-fous et les dry-runs sont distincts de l'exécution fonctionnelle contre GitHub/PostgreSQL. Consulter le résultat réel de la nouvelle exécution avant de conclure que la connexion et les parcours ont réussi.
+
+## Diagnostiquer un démarrage interrompu
+
+`Application containers started` confirme uniquement que Docker a accepté les lancements. Seul `backend readiness: PASS` confirme que le backend répond après son initialisation.
+
+En cas d'arrêt, consulter `startup.json` dans les rapports : il contient le code de sortie, l'indicateur mémoire et les causes Java expurgées. Les erreurs réseau, authentification, TLS, schéma et permissions sont distinguées ; les mots de passe, tokens, adresses et identifiants connus sont masqués. Les journaux bruts restent exclus des artefacts.
+
+`The operation was canceled` correspond à une interruption GitHub/runner et ne prouve pas un défaut de connexion PostgreSQL. Vérifier le statut final (`Cancelled` ou `Timed out`) et la durée du job. Après une mise à jour du diagnostic, utiliser la nouvelle exécution du nouveau commit ; relancer une ancienne exécution conserve son ancien code.
