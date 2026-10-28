@@ -163,14 +163,8 @@ Les captures ci-dessous sont à ajouter dans `docs/`. Utiliser des comptes de d�
 ![Offres et abonnements](docs/04-abonnements.png)
 
 
-### Paiement Stripe — mode test
-
-> 📷 Capture à ajouter : `docs/05-stripe-test.png`
->
-> Montrer uniquement un parcours de test, sans clé API ni données bancaires réelles.
 
 
-![Paiement Stripe en mode test](docs/05-stripe-test.png)
 
 
 ### Objets perdus et trouvés
