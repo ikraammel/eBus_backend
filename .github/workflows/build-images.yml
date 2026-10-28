@@ -165,6 +165,19 @@ jobs:
           EBUS_ADMIN_EMAIL: ${{ secrets.EBUS_ADMIN_EMAIL }}
           EBUS_ADMIN_PASSWORD: ${{ secrets.EBUS_ADMIN_PASSWORD }}
         run: python ci/browser.py
+      - name: Playwright - business end-to-end scenarios
+        if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
+        env:
+          CI: true
+          EBUS_BROWSER_CHANNEL: chrome
+          EBUS_DEPLOYED_FRONTEND_URL: https://ebus-frontend-1an4.onrender.com
+          EBUS_USER_EMAIL: ${{ secrets.EBUS_USER_EMAIL }}
+          EBUS_USER_PASSWORD: ${{ secrets.EBUS_USER_PASSWORD }}
+          EBUS_ADMIN_EMAIL: ${{ secrets.EBUS_ADMIN_EMAIL }}
+          EBUS_ADMIN_PASSWORD: ${{ secrets.EBUS_ADMIN_PASSWORD }}
+        run: |
+          mkdir -p ci-reports/business-playwright
+          python qa-suites/playwright/business_e2e.py --case all --headless
       - name: JMeter - one USER, one iteration, seven requests
         if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
         env:
