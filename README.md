@@ -7,6 +7,19 @@ API de transport eBus développée en Java 17 avec Spring Boot 3.2.6 et PostgreS
 | API | [eBus_backend](https://github.com/ikraammel/eBus_backend) | [Render](https://ebus-backend-ao2u.onrender.com) |
 | Application Flutter | [eBus_frontend](https://github.com/ikraammel/eBus_frontend) | [Web Render](https://ebus-frontend-1an4.onrender.com/) |
 
+## 🏗️ Architecture
+
+The following diagram illustrates the eBus application architecture, its external services, deployment, and QA automation strategy.
+
+<p align="center">
+  <img
+    src="docs/architecture.png"
+    alt="eBus application architecture diagram"
+    width="100%"
+  />
+</p>
+
+
 ## Structure
 
 Le workflow `.github/workflows/build-images.yml` construit les images backend/frontend, puis exécute un job Robot/Playwright/JMeter contre le backend connecté à la base distante avec les comptes existants. Voir [la procédure GitHub Actions](docs/build-images.md) et [les secrets et protections des tests](ci/README.md). Aucun identifiant de base n'est requis pour le build ; les secrets sont nécessaires au job de tests.
