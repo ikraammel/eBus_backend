@@ -204,6 +204,7 @@ jobs:
             ci-reports/*.html
             ci-reports/*.xml
             ci-reports/jmeter.csv
+            qa-suites/reports/playwright/**
           if-no-files-found: ignore
           retention-days: 7
       - name: Stop CI containers
