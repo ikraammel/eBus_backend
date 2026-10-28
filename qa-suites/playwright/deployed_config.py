@@ -6,7 +6,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 DEPLOYED_FRONTEND = "https://ebus-frontend-1an4.onrender.com"
-API = "https://ebus-backend-ao2u.onrender.com"
+API = os.environ.get("EBUS_API_BASE_URL", "https://ebus-backend-ao2u.onrender.com").rstrip("/")
 SECRET_NAMES = {
     "USER": ("EBUS_USER_EMAIL", "EBUS_USER_PASSWORD"),
     "ADMIN": ("EBUS_ADMIN_EMAIL", "EBUS_ADMIN_PASSWORD"),
@@ -18,8 +18,8 @@ def frontend_url():
     parsed = urlsplit(value)
     if value not in (DEPLOYED_FRONTEND, "http://127.0.0.1:17357", "http://localhost:17357") or parsed.username or parsed.password:
         raise ValueError("Unsupported frontend target; use the known Render URL or local test server")
-    if os.environ.get("CI") == "true" and value != DEPLOYED_FRONTEND:
-        raise ValueError("Deployed CI must use the Render frontend URL")
+    if os.environ.get("CI") == "true" and value not in (DEPLOYED_FRONTEND, "http://127.0.0.1:18082"):
+        raise ValueError("CI frontend must use the known Render or local container URL")
     return value
 
 

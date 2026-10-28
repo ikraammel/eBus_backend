@@ -14,7 +14,7 @@ on:
       api_base_url:
         description: Public API URL embedded in Flutter Web (never a secret)
         required: true
-        default: https://ebus-backend-ao2u.onrender.com
+        default: http://127.0.0.1:18081
         type: string
 
 permissions:
@@ -76,7 +76,7 @@ jobs:
           context: frontend
           file: frontend/Dockerfile
           build-args: |
-            API_BASE_URL=${{ inputs.api_base_url || 'https://ebus-backend-ao2u.onrender.com' }}
+            API_BASE_URL=${{ inputs.api_base_url || 'http://127.0.0.1:18081' }}
           tags: ebus-frontend:ci
           push: false
           outputs: type=docker,dest=${{ runner.temp }}/ebus-frontend.tar
@@ -170,7 +170,8 @@ jobs:
         env:
           CI: true
           EBUS_BROWSER_CHANNEL: chrome
-          EBUS_DEPLOYED_FRONTEND_URL: https://ebus-frontend-1an4.onrender.com
+          EBUS_DEPLOYED_FRONTEND_URL: http://127.0.0.1:18082
+          EBUS_API_BASE_URL: http://127.0.0.1:18081
           EBUS_USER_EMAIL: ${{ secrets.EBUS_USER_EMAIL }}
           EBUS_USER_PASSWORD: ${{ secrets.EBUS_USER_PASSWORD }}
           EBUS_ADMIN_EMAIL: ${{ secrets.EBUS_ADMIN_EMAIL }}
