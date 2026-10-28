@@ -524,9 +524,10 @@ class BusinessRun:
                     self.cleanup()
                 else:
                     self.current["cleanup_not_needed"] = True
-            except Exception:
+            except Exception as error:
                 self.current["status"] = "FAIL"
                 self.current["cleanup_or_preservation_requires_attention"] = True
+                self.current["cleanup_error_type"] = type(error).__name__
             print(identifier + ": " + self.current["status"], flush=True)
 
 
