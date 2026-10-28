@@ -16,7 +16,7 @@ SECRET_NAMES = {
 def frontend_url():
     value = os.environ.get("EBUS_DEPLOYED_FRONTEND_URL", "http://127.0.0.1:17357").rstrip("/")
     parsed = urlsplit(value)
-    if value not in (DEPLOYED_FRONTEND, "http://127.0.0.1:17357", "http://localhost:17357") or parsed.username or parsed.password:
+    if value not in (DEPLOYED_FRONTEND, "http://127.0.0.1:17357", "http://localhost:17357", "http://127.0.0.1:18082") or parsed.username or parsed.password:
         raise ValueError("Unsupported frontend target; use the known Render URL or local test server")
     if os.environ.get("CI") == "true" and value not in (DEPLOYED_FRONTEND, "http://127.0.0.1:18082"):
         raise ValueError("CI frontend must use the known Render or local container URL")
