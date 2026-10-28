@@ -129,39 +129,39 @@ Ajouter l’image dans docs/screenshots/architecture.png puis décommenter :
 
 ## Interfaces de l’application
 
-Les captures ci-dessous sont à ajouter dans `docs/screenshots/`. Utiliser des comptes de démonstration et masquer les informations personnelles.
+Les captures ci-dessous sont à ajouter dans `docs/`. Utiliser des comptes de démonstration et masquer les informations personnelles.
 
 ### Accueil et consultation des lignes
 
-> 📷 Capture à ajouter : `docs/screenshots/01-accueil-lignes.png`
+> 📷 Capture à ajouter : `docs/01-accueil-lignes.png`
 
-<!--
-![Accueil et consultation des lignes](docs/screenshots/01-accueil-lignes.png)
--->
+
+![Accueil et consultation des lignes](docs/01-accueil-lignes.png)
+
 
 ### Authentification
 
 > 📷 Capture à ajouter : `docs/02-authentification.png`
 
-<!--
+
 ![Authentification eBus](docs/02-authentification.png)
--->
+
 
 ### Espace utilisateur
 
 > 📷 Capture à ajouter : `docs/03-espace-utilisateur.png`
 
-<!--
+
 ![Espace utilisateur](docs/03-espace-utilisateur.png)
--->
+
 
 ### Offres et abonnements
 
 > 📷 Capture à ajouter : `docs/04-abonnements.png`
 
-<!--
+
 ![Offres et abonnements](docs/04-abonnements.png)
--->
+
 
 ### Paiement Stripe — mode test
 
@@ -169,41 +169,39 @@ Les captures ci-dessous sont à ajouter dans `docs/screenshots/`. Utiliser des c
 >
 > Montrer uniquement un parcours de test, sans clé API ni données bancaires réelles.
 
-<!--
+
 ![Paiement Stripe en mode test](docs/05-stripe-test.png)
--->
+
 
 ### Objets perdus et trouvés
 
 > 📷 Capture à ajouter : `docs/06-objets-perdus.png`
 
-<!--
-![Gestion des objets perdus et trouvés](docs/screenshots/06-objets-perdus.png)
--->
+
+![Gestion des objets perdus et trouvés](docs/06-objets-perdus.png)
+
 
 ### Réclamations
 
 > 📷 Capture à ajouter : `docs/07-reclamations.png`
 
-<!--
-![Création et suivi des réclamations](docs/screenshots/07-reclamations.png)
--->
+
+![Création et suivi des réclamations](docs/07-reclamations.png)
+
 
 ### Espace administrateur
 
 > 📷 Capture à ajouter : `docs/08-administration.png`
 
-<!--
-![Espace administrateur](docs/screenshots/08-administration.png)
--->
 
-### Application Android
+![Espace administrateur](docs/08-administration.png)
 
-> 📷 Capture à ajouter : `docs/09-android.png`
 
-<!--
-<img src="docs/screenshots/09-android.png" alt="Application eBus Android" width="300">
--->
+
+
+
+
+
 
 ## Backend
 
