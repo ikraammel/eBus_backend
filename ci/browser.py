@@ -3,12 +3,19 @@ import json
 import argparse
 import os
 from pathlib import Path
+import sys
 from urllib.parse import urlsplit
 from playwright.sync_api import sync_playwright, expect
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from runtime import redact
 
 API = 'http://127.0.0.1:18081'
 UI = 'http://127.0.0.1:18082'
 ALLOWED_ORIGINS = (API, 'https://ebus-backend-ao2u.onrender.com')
+
+
+class FrontendBootstrapError(RuntimeError):
+    pass
 
 
 def permitted(method, path):
@@ -35,11 +42,23 @@ def resource_kind(url):
 
 def journey(browser, role):
     context = browser.new_context(service_workers='block', viewport={'width': 1280, 'height': 1000})
+    context.add_init_script("""(() => {
+        window.__ebusUIReady = false;
+        const failed = () => {
+            if (!window.__ebusUIReady && document.documentElement) {
+                document.documentElement.setAttribute('data-ebus-bootstrap-failed', 'true');
+            }
+        };
+        addEventListener('error', failed);
+        addEventListener('unhandledrejection', failed);
+    })();""")
     page = context.new_page()
     observed = {'responses': 0, 'login': False, 'lines': False}
     diagnostics = {'failed_resources': {}, 'javascript_error_types': [], 'api_statuses': {},
                    'api_requests': {}, 'route_errors': 0}
     stage = 'open-frontend'
+    private_values = [value for name, value in os.environ.items() if any(
+        part in name for part in ('PASSWORD','SECRET','TOKEN','EMAIL','DB_URL','DB_USERNAME'))]
 
     def failed_request(request):
         kind = resource_kind(request.url)
@@ -47,8 +66,10 @@ def journey(browser, role):
 
     def page_error(error):
         message = str(error)
-        kind = next((name for name in ('WebAssembly','CanvasKit','FirebaseError','TypeError','ReferenceError') if name in message), 'other')
+        kind = next((name for name in ('WebAssembly','CanvasKit','FirebaseError','TypeError','ReferenceError') if name in message), getattr(error, 'name', 'Error'))
         diagnostics['javascript_error_types'].append(kind)
+        if stage in ('open-frontend','enable-flutter-semantics','wait-login-screen'):
+            diagnostics.setdefault('bootstrap_errors_redacted', []).append(redact(message, private_values)[:2000])
 
     page.on('requestfailed', failed_request)
     page.on('pageerror', page_error)
@@ -95,13 +116,16 @@ def journey(browser, role):
         page.goto(UI, wait_until='domcontentloaded', timeout=60000)
         stage = 'enable-flutter-semantics'
         print(role + ': enable Flutter semantics', flush=True)
-        page.locator('flt-semantics-placeholder, flt-semantics[aria-label]').first.wait_for(state='attached', timeout=90000)
+        page.locator('flt-semantics-placeholder, flt-semantics[aria-label], html[data-ebus-bootstrap-failed]').first.wait_for(state='attached', timeout=90000)
+        if page.locator('html[data-ebus-bootstrap-failed]').count() and not page.locator('flt-semantics-placeholder, flt-semantics').count():
+            raise FrontendBootstrapError('JavaScript startup failed before Flutter created its view')
         placeholder = page.locator('flt-semantics-placeholder')
         if placeholder.count():
             placeholder.first.evaluate('(element)=>element.click()')
         stage = 'wait-login-screen'
         print(role + ': wait for login screen', flush=True)
         expect(ui_label(page, 'Bienvenue sur eBus', exact=False)).to_be_visible(timeout=90000)
+        page.evaluate('window.__ebusUIReady = true')
         if role == 'GUEST':
             stage = 'enter-guest-mode'
             ui_label(page, "Continuer en tant qu'invité").click()
@@ -175,14 +199,16 @@ def main(roles=('GUEST','USER','ADMIN')):
         channel = os.environ.get('EBUS_BROWSER_CHANNEL', 'chromium')
         if channel not in ('chrome','chromium'):
             raise ValueError('Unsupported browser channel')
-        browser = playwright.chromium.launch(headless=True, channel='chrome' if channel == 'chrome' else None)
+        browser = playwright.chromium.launch(headless=True, channel='chrome' if channel == 'chrome' else None,
+            args=['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'])
+        browser_version = browser.version
         try:
             checks = [journey(browser, role) for role in roles]
         finally:
             browser.close()
     folder = Path('ci-reports')
     folder.mkdir(exist_ok=True)
-    (folder / 'playwright.json').write_text(json.dumps({'checks': checks}, indent=2))
+    (folder / 'playwright.json').write_text(json.dumps({'browser_channel': channel, 'browser_version': browser_version, 'checks': checks}, indent=2))
     for item in checks:
         print(item['name'] + ': ' + ('PASS' if item['pass'] else 'FAIL (' + item['error_type'] + ', stage=' + item['failed_stage'] + ')'))
         if not item['pass']:
