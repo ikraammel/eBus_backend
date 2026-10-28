@@ -13,7 +13,8 @@ The following diagram illustrates the eBus application architecture, its externa
 
 <p align="center">
   <img
-    src="docs/architecture.png"
+    src="docs/eBus Platform Architecture Diagram.png
+"
     alt="eBus application architecture diagram"
     width="100%"
   />
