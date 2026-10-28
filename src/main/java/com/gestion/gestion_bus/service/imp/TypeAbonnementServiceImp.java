@@ -52,10 +52,10 @@ public class TypeAbonnementServiceImp implements TypeAbonnementService {
 			.getContext()
 			.getAuthentication();
 
-		User user = (User) authentication.getPrincipal();
-
-
-		if(user.getCne() != null && !user.getCne().isEmpty()) {
+		// Public requests use an anonymous String principal, not our User entity.
+		if (authentication != null && authentication.isAuthenticated()
+				&& authentication.getPrincipal() instanceof User user
+				&& user.getCne() != null && !user.getCne().isEmpty()) {
 			return typeAbonnementRepository.findAll();
 		}
 

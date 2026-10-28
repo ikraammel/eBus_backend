@@ -69,6 +69,12 @@ Ces classes utilisent Mockito : 32 cas pour les abonnements et 9 pour les objets
 
 ## Tests de contexte et d'intégration
 
+La régression `TypeAbonnementServiceImpTest` ajoute huit vérifications ciblées du catalogue d'abonnements : visiteur, absence d'authentification, accès étudiant et réponse HTTP du contrôleur. Elles ont réussi le 28 octobre 2026 sans accès à PostgreSQL :
+
+```powershell
+mvn.cmd -B "-Dtest=TypeAbonnementServiceImpTest" test
+```
+
 `AbstractDatabaseTest` configure la base dédiée `ebus_integration` sur `127.0.0.1:55433`, avec le compte synthétique `ebus_integration` et le mot de passe de test `integration-only`. Créer ce service PostgreSQL et cette base nativement avant l'exécution complète ; ces valeurs sont réservées à l'environnement local de test.
 
 ```powershell

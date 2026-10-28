@@ -30,7 +30,9 @@ Le contrôle JDBC complète les restrictions des scénarios ; il ne remplace pas
 
 Le frontend actuellement construit contient l'adresse API Render. Pour garantir que les parcours testent **le backend Docker**, Playwright transmet ces appels au conteneur et restitue ses vraies réponses. Aucune donnée API n'est simulée. Ce routage de test ne valide pas la configuration CORS du déploiement. Les requêtes d'écriture externes sont bloquées.
 
-Une erreur Robot ne masque pas les exécutions indépendantes Playwright/JMeter : elles continuent si les applications sont disponibles. Le job reste en échec si une suite échoue. En particulier, le HTTP 500 anonyme sur `/types-abonnement` précédemment observé reste un défaut si reproduit ; il n'est pas accepté comme succès.
+Les sélecteurs reconnaissent le texte et les noms accessibles du DOM sémantique Flutter. Le parcours des lignes attend la réponse GET réelle avant de vérifier les données reçues : l'apparition du titre de page ne garantit pas que cette réponse soit terminée. Les échecs indiquent l'étape, les statuts API et des compteurs de ressources sans publier de contenu de session. Une capture du parcours invité peut être conservée localement pour le diagnostic ; les captures ne sont pas incluses dans les artefacts GitHub actuels.
+
+Une erreur Robot ne masque pas les exécutions indépendantes Playwright/JMeter : elles continuent si les applications sont disponibles. Le job reste en échec si une suite échoue. Le HTTP 500 anonyme sur `/types-abonnement` provenait d'une conversion du principal anonyme en `User`. Le service gère maintenant explicitement le visiteur et lui renvoie les offres non étudiantes ; le comportement étudiant authentifié est conservé. Le test Robot attend toujours HTTP 200 et un tableau JSON. Huit régressions Java ciblées couvrent ce correctif, sans base de données.
 
 Les rapports sont disponibles dans l'artefact `remote-database-test-reports`. Aucun journal applicatif brut, JWT, capture ou trace navigateur n'est publié. Le diagnostic de démarrage indique une catégorie d'erreur (réseau, authentification, schéma) sans afficher les secrets.
 
