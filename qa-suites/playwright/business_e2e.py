@@ -285,6 +285,8 @@ class BusinessRun:
         self.stage = "create object via UI"
         with user.expect_response(lambda r: urlsplit(r.url).path == RESOURCES["object"][1] and r.request.method == "POST", timeout=60000) as response:
             label(user, "VALIDER").click()
+        self.current["create_response"] = {"status": response.value.status,
+                                            "content_type": response.value.headers.get("content-type", "")}
         if response.value.status not in (200, 201):
             raise AssertionError("Object declaration rejected")
         self.assert_row("object", type=self.object_type, statut="EN_ATTENTE")
@@ -408,6 +410,8 @@ class BusinessRun:
         self.stage = "create inactive subscription offer via UI"
         with admin.expect_response(lambda r: r.request.method == "POST" and urlsplit(r.url).path == "/types-abonnement", timeout=60000) as response:
             label(admin, "Valider").click()
+        self.current["create_response"] = {"status": response.value.status,
+                                            "content_type": response.value.headers.get("content-type", "")}
         if response.value.status not in (200, 201):
             raise AssertionError("Offer creation rejected")
         self.assert_row("offer", prix=3.5, dureeMois=1, actif=False)
