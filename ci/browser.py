@@ -27,6 +27,23 @@ def ui_label(page, value, exact=True):
     return page.get_by_text(value, exact=exact).or_(page.get_by_label(value, exact=exact)).last
 
 
+def enter_text(field, value):
+    field.click()
+    expect(field).to_be_focused()
+    field.fill('')
+    # Give Flutter's editing controller actual keyboard events at a human cadence.
+    field.press_sequentially(value, delay=40)
+    expect(field).to_have_value(value)
+    field.press('Tab')
+
+
+def login_payload_checks(payload, role):
+    valid = isinstance(payload, dict)
+    return {'json_object': valid,
+            'email_matches_secret': valid and payload.get('email') == os.environ.get('EBUS_' + role + '_EMAIL'),
+            'password_matches_secret': valid and payload.get('password') == os.environ.get('EBUS_' + role + '_PASSWORD')}
+
+
 def resource_kind(url):
     parsed = urlsplit(url)
     if parsed.scheme + '://' + parsed.netloc in ALLOWED_ORIGINS:
@@ -86,6 +103,11 @@ def journey(browser, role):
             target = API + parsed.path + ('?' + parsed.query if parsed.query else '')
             endpoint = {'/api/health': 'health', '/users/login': 'login', '/lignes': 'lines'}.get(parsed.path, 'other')
             diagnostics['api_requests'][endpoint] = diagnostics['api_requests'].get(endpoint, 0) + 1
+            if endpoint == 'login' and request.method == 'POST':
+                try:
+                    diagnostics['login_payload_checks'] = login_payload_checks(request.post_data_json, role)
+                except Exception:
+                    diagnostics['login_payload_checks'] = {'json_object': False}
             response = route.fetch(url=target, max_redirects=0, timeout=45000)
             observed['responses'] += 1
             diagnostics['api_statuses'][endpoint] = response.status
@@ -135,11 +157,9 @@ def journey(browser, role):
                 ui_label(page, 'Accès administrateur').click()
             stage = 'enter-credentials'
             email = page.get_by_role('textbox').first
-            email.click()
-            email.press_sequentially(os.environ['EBUS_' + role + '_EMAIL'])
+            enter_text(email, os.environ['EBUS_' + role + '_EMAIL'])
             password = page.locator('input[type="password"]')
-            password.click()
-            password.press_sequentially(os.environ['EBUS_' + role + '_PASSWORD'])
+            enter_text(password, os.environ['EBUS_' + role + '_PASSWORD'])
             stage = 'submit-login'
             with page.expect_response(lambda response: urlsplit(response.url).path == '/users/login' and response.request.method == 'POST', timeout=60000):
                 ui_label(page, 'Connexion Admin' if role == 'ADMIN' else 'Se Connecter').click()

@@ -32,6 +32,8 @@ Le frontend actuellement construit contient l'adresse API Render. Pour garantir 
 
 Les sélecteurs reconnaissent le texte et les noms accessibles du DOM sémantique Flutter. Le parcours des lignes attend la réponse GET réelle avant de vérifier les données reçues : l'apparition du titre de page ne garantit pas que cette réponse soit terminée. Les échecs indiquent l'étape, les statuts API et des compteurs de ressources sans publier de contenu de session. Une capture du parcours invité peut être conservée localement pour le diagnostic ; les captures ne sont pas incluses dans les artefacts GitHub actuels.
 
+La saisie de connexion attend le focus, vide le champ, frappe progressivement, vérifie la valeur puis quitte le champ. Le rapport compare également les champs du JSON envoyé aux secrets attendus en ne conservant que des booléens ; aucun email ou mot de passe n'est publié. Les tokens sont toujours obtenus par la vraie connexion UI.
+
 Le job utilise explicitement le Chrome installé sur le runner Ubuntu, en mode headless, avec SwiftShader pour le rendu logiciel sur une machine sans GPU. Il publie le canal et la version du navigateur dans le bilan. Si JavaScript échoue avant la création de la vue Flutter, le test signale immédiatement `FrontendBootstrapError` et conserve le message expurgé ; il ne passe pas trois minutes à attendre des sélecteurs absents. Les erreurs détaillées ne sont capturées qu'avant la saisie des identifiants.
 
 Références : [canaux et modes headless Playwright](https://playwright.dev/python/docs/browsers), [rendu logiciel SwiftShader de Chromium](https://github.com/chromium/chromium/blob/main/docs/gpu/swiftshader.md).

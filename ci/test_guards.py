@@ -36,6 +36,17 @@ class Guards(unittest.TestCase):
         self.assertFalse(browser.permitted('DELETE','/lignes/1'))
         self.assertFalse(browser.permitted('PATCH','/users/1'))
 
+    def test_login_payload_diagnostics_reveal_matches_only(self):
+        email, password = 'fixture@example.invalid', 'synthetic-password-for-unit'
+        with patch.dict(os.environ, {'EBUS_USER_EMAIL':email,'EBUS_USER_PASSWORD':password}):
+            matches = browser.login_payload_checks({'email':email,'password':password},'USER')
+            self.assertTrue(all(matches.values()))
+            mismatch = browser.login_payload_checks({'email':email,'password':'wrong'},'USER')
+            self.assertFalse(mismatch['password_matches_secret'])
+            self.assertFalse(browser.login_payload_checks(None,'USER')['json_object'])
+        self.assertNotIn(email,str(matches))
+        self.assertNotIn(password,str(matches))
+
     def test_missing_secrets_stop_before_container_start(self):
         with patch.dict(os.environ, {}, clear=True), patch.object(runtime, 'docker') as docker:
             with self.assertRaisesRegex(ValueError, 'Missing GitHub Secrets'):
