@@ -133,7 +133,9 @@ class BusinessRun:
                 if str(body.get("ligneId")) not in self.line_ids or body.get("description") != self.marker + " description":
                     return False
                 if kind == "object":
-                    return self.current["id"] in ("BIZ-001", "BIZ-002") and body.get("type") == self.object_type and body.get("statut") == "EN_ATTENTE"
+                    return (self.current["id"] in ("BIZ-001", "BIZ-002")
+                            and body.get("type") == self.object_type
+                            and body.get("statut") in (None, "", "EN_ATTENTE"))
                 return self.current["id"] == "BIZ-003"
             identifier = self.owned.get(kind)
             if identifier is None or not path.startswith(prefix + "/" + str(identifier)):
