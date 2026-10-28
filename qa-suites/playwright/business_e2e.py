@@ -126,7 +126,9 @@ class BusinessRun:
                     return (self.current["id"] == "BIZ-004" and body.get("actif") is False
                             and body.get("prix") == 3.5 and body.get("dureeMois") == 1
                             and not body.get("stripePriceId"))
-                if str(body.get("userId")) != str(self.accounts["USER"]["id"]):
+                # The multipart object form intentionally omits userId; the
+                # backend derives the owner from the authenticated JWT.
+                if kind != "object" and str(body.get("userId")) != str(self.accounts["USER"]["id"]):
                     return False
                 if str(body.get("ligneId")) not in self.line_ids or body.get("description") != self.marker + " description":
                     return False
