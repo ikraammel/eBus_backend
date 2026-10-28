@@ -179,6 +179,14 @@ jobs:
         run: |
           mkdir -p ci-reports/business-playwright
           python qa-suites/playwright/business_e2e.py --case all --headless
+      - name: Upload business Playwright report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: business-playwright-report
+          path: qa-suites/reports/playwright/**
+          if-no-files-found: warn
+          retention-days: 7
       - name: JMeter - one USER, one iteration, seven requests
         if: ${{ !cancelled() && steps.ready.outcome == 'success' }}
         env:
